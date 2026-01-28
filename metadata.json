@@ -1,0 +1,5 @@
+{
+  "name": "Espetinho Delivery",
+  "description": "Um aplicativo para pedir deliciosos espetinhos nordestinos diretamente pelo celular, com gerenciamento de cardápio e envio rápido via WhatsApp.",
+  "requestFramePermissions": []
+}
