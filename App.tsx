@@ -10,9 +10,9 @@ import { ProductModal } from './components/ProductModal';
 import { AgeVerificationModal } from './components/AgeVerificationModal';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { AdminLogin } from './components/AdminLogin';
-import { PRODUCTS, CATEGORIES } from './constants';
 import { Product, CartItem, Category, CategoryItem } from './types';
 import { Plus, Phone, MapPin, Minus, ShieldCheck } from 'lucide-react';
+import { supabase } from './supabase';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'shop' | 'admin' | 'privacy'>('shop');
@@ -29,10 +29,9 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Initial state contains ONLY safe products. 
-  // Alcohol products are NEVER in this initial state to pass crawler checks.
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [categories, setCategories] = useState<CategoryItem[]>(CATEGORIES);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeCategory, setActiveCategory] = useState<Category | 'Todos'>('Todos');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -44,6 +43,49 @@ const App: React.FC = () => {
 
   // Flag to track if restricted content has been loaded into memory
   const [isAlcoholLoaded, setIsAlcoholLoaded] = useState(false);
+
+  // Initial Fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch Categories
+      const { data: catData, error: catError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('order', { ascending: true });
+
+      if (catError) throw catError;
+
+      // Ensure 'Todos' exists as a virtual category if not in DB, 
+      // but usually we just prepend it in the UI or DB.
+      // Based on previous code, CATEGORIES had 'Todos'.
+      const dbCategories = catData || [];
+      const hasTodos = dbCategories.some(c => c.id === 'Todos');
+      if (!hasTodos) {
+        setCategories([{ id: 'Todos', label: 'Todos', icon: '🍽️', active: true }, ...dbCategories]);
+      } else {
+        setCategories(dbCategories);
+      }
+
+      // Fetch Products (non-restricted)
+      const { data: prodData, error: prodError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_restricted', false);
+
+      if (prodError) throw prodError;
+      setProducts(prodData || []);
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Shop Logic
   const filteredProducts = useMemo(() => {
@@ -108,7 +150,7 @@ const App: React.FC = () => {
   // Category Selection Logic with Age Gate
   const handleCategorySelect = (category: Category | 'Todos') => {
     if (category === 'Bebidas') {
-      // If already loaded, just switch. If not, ask for permission (which triggers load).
+      // If already loaded, just switch. If not, ask for permission.
       if (isAlcoholLoaded) {
         setActiveCategory(category);
       } else {
@@ -121,15 +163,17 @@ const App: React.FC = () => {
 
   const handleAgeConfirm = async () => {
     try {
-      // DYNAMIC IMPORT: This strictly isolates alcohol data.
-      // It is only fetched after user interaction, safe from crawlers.
-      const module = await import('./alcoholData');
-      const restrictedProducts = module.RESTRICTED_PRODUCTS;
+      // Fetch Restricted Products from Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_restricted', true);
+
+      if (error) throw error;
 
       setProducts(prev => {
-        // Avoid duplicates
         const existingIds = new Set(prev.map(p => p.id));
-        const newProducts = restrictedProducts.filter(p => !existingIds.has(p.id));
+        const newProducts = (data || []).filter(p => !existingIds.has(p.id));
         return [...prev, ...newProducts];
       });
 
@@ -137,8 +181,7 @@ const App: React.FC = () => {
       setActiveCategory('Bebidas');
       setIsAgeModalOpen(false);
     } catch (error) {
-      console.error("Failed to load restricted content. Blocked by policy or network.", error);
-      // If loading fails, we keep the user out.
+      console.error("Failed to load restricted content:", error);
       setIsAgeModalOpen(false);
     }
   };
@@ -148,34 +191,103 @@ const App: React.FC = () => {
   };
 
   // --- Admin Logic: Products ---
-  const handleToggleAvailability = (id: string) => {
+  const handleToggleAvailability = async (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const newAvailable = !product.available;
+
+    // Update locally
     setProducts(prev => prev.map(p =>
-      p.id === id ? { ...p, available: !p.available } : p
+      p.id === id ? { ...p, available: newAvailable } : p
     ));
+
+    // Update DB
+    const { error } = await supabase
+      .from('products')
+      .update({ available: newAvailable })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating availability:', error);
+      // Revert local state if needed (optional for snappier UI)
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting product:', error);
+        alert('Erro ao excluir produto.');
+        return;
+      }
+
       setProducts(prev => prev.filter(p => p.id !== id));
       removeItem(id);
     }
   };
 
-  const handleAddProduct = (newProductData: any) => {
-    const newProduct: Product = {
-      id: Date.now().toString(),
+  const handleAddProduct = async (newProductData: any) => {
+    const isRestricted = newProductData.category === 'Bebidas';
+
+    const dbProduct = {
       name: newProductData.name,
       price: newProductData.price,
       category: newProductData.category,
-      image: newProductData.image || undefined,
+      image: newProductData.image || null,
       icon: newProductData.emoji || '📦',
+      description: newProductData.description || '',
       available: true,
-      description: ''
+      is_restricted: isRestricted
     };
-    setProducts(prev => [...prev, newProduct]);
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert([dbProduct])
+      .select();
+
+    if (error) {
+      console.error('Error adding product:', error);
+      alert('Erro ao adicionar produto.');
+      return;
+    }
+
+    if (data && data[0]) {
+      // If it's a restricted product and not loaded yet, we don't show it in the store yet
+      // unless we are in admin view where we might want to see everything.
+      // But for simplicity, let's add it to state.
+      setProducts(prev => [...prev, data[0]]);
+    }
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    const isRestricted = updatedProduct.category === 'Bebidas';
+
+    const { error } = await supabase
+      .from('products')
+      .update({
+        name: updatedProduct.name,
+        price: updatedProduct.price,
+        category: updatedProduct.category,
+        image: updatedProduct.image || null,
+        icon: updatedProduct.icon || '📦',
+        description: updatedProduct.description || '',
+        available: updatedProduct.available,
+        is_restricted: isRestricted
+      })
+      .eq('id', updatedProduct.id);
+
+    if (error) {
+      console.error('Error updating product:', error);
+      alert('Erro ao atualizar produto.');
+      return;
+    }
+
     setProducts(prev => prev.map(p =>
       p.id === updatedProduct.id ? updatedProduct : p
     ));
@@ -187,35 +299,91 @@ const App: React.FC = () => {
   };
 
   // --- Admin Logic: Categories ---
-  const handleAddCategory = (data: any) => {
-    const newCategory: CategoryItem = {
-      id: data.label,
+  const handleAddCategory = async (data: any) => {
+    const newCategory = {
+      id: data.label, // or generate a slug
       label: data.label,
       icon: data.icon || '📦',
-      active: true
+      active: true,
+      order: categories.length
     };
-    setCategories(prev => [...prev, newCategory]);
+
+    const { data: dbData, error } = await supabase
+      .from('categories')
+      .insert([newCategory])
+      .select();
+
+    if (error) {
+      console.error('Error adding category:', error);
+      alert('Erro ao adicionar categoria.');
+      return;
+    }
+
+    if (dbData && dbData[0]) {
+      setCategories(prev => [...prev, dbData[0]]);
+    }
   };
 
-  const handleUpdateCategory = (data: CategoryItem) => {
+  const handleUpdateCategory = async (data: CategoryItem) => {
+    const { error } = await supabase
+      .from('categories')
+      .update({
+        label: data.label,
+        icon: data.icon,
+        active: data.active,
+        order: data.order
+      })
+      .eq('id', data.id);
+
+    if (error) {
+      console.error('Error updating category:', error);
+      alert('Erro ao atualizar categoria.');
+      return;
+    }
+
     setCategories(prev => prev.map(c => c.id === data.id ? data : c));
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     if (window.confirm('Excluir categoria? Produtos nesta categoria ficarão órfãos ou invisíveis.')) {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting category:', error);
+        alert('Erro ao excluir categoria.');
+        return;
+      }
+
       setCategories(prev => prev.filter(c => c.id !== id));
       if (activeCategory === id) setActiveCategory('Todos');
     }
   };
 
-  const handleToggleCategoryStatus = (id: string) => {
+  const handleToggleCategoryStatus = async (id: string) => {
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+
+    const newActive = !cat.active;
+
     setCategories(prev => prev.map(c =>
-      c.id === id ? { ...c, active: !c.active } : c
+      c.id === id ? { ...c, active: newActive } : c
     ));
+
+    const { error } = await supabase
+      .from('categories')
+      .update({ active: newActive })
+      .eq('id', id);
+
+    if (error) console.error('Error toggling category:', error);
+
     if (activeCategory === id) setActiveCategory('Todos');
   };
 
-  const handleReorderCategory = (id: string, direction: 'up' | 'down') => {
+  const handleReorderCategory = async (id: string, direction: 'up' | 'down') => {
+    // This is more complex for real ordering, but let's do a simple swap in state and DB
     setCategories(prev => {
       const index = prev.findIndex(c => c.id === id);
       if (index === -1) return prev;
@@ -223,11 +391,25 @@ const App: React.FC = () => {
       const newCategories = [...prev];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
-      if (targetIndex <= 0 || targetIndex >= newCategories.length) return prev;
+      if (targetIndex < 0 || targetIndex >= newCategories.length) return prev;
+
+      // Swap orders
+      const tempOrder = newCategories[index].order;
+      newCategories[index].order = newCategories[targetIndex].order;
+      newCategories[targetIndex].order = tempOrder;
 
       [newCategories[index], newCategories[targetIndex]] = [newCategories[targetIndex], newCategories[index]];
+
+      // Update both in DB (ideally in one transaction or use an RPC)
+      updateCategoryOrderInDB(newCategories[index]);
+      updateCategoryOrderInDB(newCategories[targetIndex]);
+
       return newCategories;
     });
+  };
+
+  const updateCategoryOrderInDB = async (cat: CategoryItem) => {
+    await supabase.from('categories').update({ order: cat.order }).eq('id', cat.id);
   };
 
   // Helper to get quantity of a specific product in cart
@@ -257,6 +439,15 @@ const App: React.FC = () => {
     sessionStorage.removeItem('admin_auth');
     setCurrentView('shop');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-zinc-400 animate-pulse">Carregando cardápio...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">

@@ -6,6 +6,7 @@ export interface CategoryItem {
   label: string;
   icon: string;
   active: boolean;
+  order: number;
 }
 
 export interface Product {
