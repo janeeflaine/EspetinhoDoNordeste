@@ -58,15 +58,21 @@ const App: React.FC = () => {
         .select('*')
         .order('order', { ascending: true });
 
-      if (catError) throw catError;
+      if (catError) {
+        console.error('Supabase Categories Error:', catError);
+        alert(`Erro ao buscar categorias: ${catError.message}`);
+        throw catError;
+      }
 
-      // Ensure 'Todos' exists as a virtual category if not in DB, 
-      // but usually we just prepend it in the UI or DB.
-      // Based on previous code, CATEGORIES had 'Todos'.
-      const dbCategories = catData || [];
+      // Standardize IDs and ensure 'Todos'
+      const dbCategories = (catData || []).map(c => ({
+        ...c,
+        id: c.id // Maintaining original ID but ensuring it exists
+      }));
+
       const hasTodos = dbCategories.some(c => c.id === 'Todos');
       if (!hasTodos) {
-        setCategories([{ id: 'Todos', label: 'Todos', icon: '🍽️', active: true }, ...dbCategories]);
+        setCategories([{ id: 'Todos', label: 'Todos', icon: '🍽️', active: true, order: -1 }, ...dbCategories]);
       } else {
         setCategories(dbCategories);
       }
@@ -77,11 +83,21 @@ const App: React.FC = () => {
         .select('*')
         .eq('is_restricted', false);
 
-      if (prodError) throw prodError;
+      if (prodError) {
+        console.error('Supabase Products Error:', prodError);
+        alert(`Erro ao buscar produtos: ${prodError.message}`);
+        throw prodError;
+      }
+
+      console.log('Fetched products:', prodData);
       setProducts(prodData || []);
 
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch (error: any) {
+      console.error('General Fetch Error:', error);
+      // Detailed alert for production debugging
+      if (error.message) {
+        alert(`Erro de Conexão: ${error.message} - Verifique as variáveis de ambiente no Vercel.`);
+      }
     } finally {
       setLoading(false);
     }
