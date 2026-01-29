@@ -17,7 +17,6 @@ export interface Product {
   description?: string;
   image?: string;
   icon?: string; // Fallback if image isn't perfect
-  available: boolean;
 }
 
 export interface CartItem extends Product {

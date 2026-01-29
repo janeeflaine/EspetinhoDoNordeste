@@ -81,7 +81,7 @@ const App: React.FC = () => {
       const { data: prodData, error: prodError } = await supabase
         .from('products')
         .select('*')
-        .eq('is_restricted', false);
+        .neq('category', 'Bebidas');
 
       if (prodError) {
         console.error('Supabase Products Error:', prodError);
@@ -108,8 +108,6 @@ const App: React.FC = () => {
     let filtered = products;
     // Only show available products in shop
     if (currentView === 'shop') {
-      filtered = filtered.filter(p => p.available);
-
       // Filter out products belonging to inactive categories
       const inactiveCategoryIds = categories.filter(c => !c.active).map(c => c.id);
       filtered = filtered.filter(p => !inactiveCategoryIds.includes(p.category));
@@ -183,7 +181,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_restricted', true);
+        .eq('category', 'Bebidas');
 
       if (error) throw error;
 
@@ -207,28 +205,6 @@ const App: React.FC = () => {
   };
 
   // --- Admin Logic: Products ---
-  const handleToggleAvailability = async (id: string) => {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-
-    const newAvailable = !product.available;
-
-    // Update locally
-    setProducts(prev => prev.map(p =>
-      p.id === id ? { ...p, available: newAvailable } : p
-    ));
-
-    // Update DB
-    const { error } = await supabase
-      .from('products')
-      .update({ available: newAvailable })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating availability:', error);
-      // Revert local state if needed (optional for snappier UI)
-    }
-  };
 
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
@@ -249,17 +225,13 @@ const App: React.FC = () => {
   };
 
   const handleAddProduct = async (newProductData: any) => {
-    const isRestricted = newProductData.category === 'Bebidas';
-
     const dbProduct = {
       name: newProductData.name,
       price: newProductData.price,
       category: newProductData.category,
       image: newProductData.image || null,
       icon: newProductData.emoji || '📦',
-      description: newProductData.description || '',
-      available: true,
-      is_restricted: isRestricted
+      description: newProductData.description || ''
     };
 
     const { data, error } = await supabase
@@ -282,8 +254,6 @@ const App: React.FC = () => {
   };
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
-    const isRestricted = updatedProduct.category === 'Bebidas';
-
     const { error } = await supabase
       .from('products')
       .update({
@@ -292,9 +262,7 @@ const App: React.FC = () => {
         category: updatedProduct.category,
         image: updatedProduct.image || null,
         icon: updatedProduct.icon || '📦',
-        description: updatedProduct.description || '',
-        available: updatedProduct.available,
-        is_restricted: isRestricted
+        description: updatedProduct.description || ''
       })
       .eq('id', updatedProduct.id);
 
@@ -608,7 +576,6 @@ const App: React.FC = () => {
         <AdminDashboard
           products={products}
           categories={categories}
-          onToggleAvailability={handleToggleAvailability}
           onDeleteProduct={handleDeleteProduct}
           onAddProduct={handleAddProduct}
           onUpdateProduct={handleUpdateProduct}
