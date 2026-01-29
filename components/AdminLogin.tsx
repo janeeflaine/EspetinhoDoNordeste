@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Lock, User, Key, AlertTriangle, Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import { supabase } from '../supabase';
 
 interface AdminLoginProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
 
   if (!isOpen) return null;
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -36,26 +38,22 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
 
     setIsLoading(true);
 
-    // Simulate network delay for security (prevent timing attacks)
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    // MOCK CREDENTIALS - In a real app, verify against a backend API
-    const VALID_EMAIL = 'admin@espetinho.com';
-    const VALID_PASS = 'admin123';
+    setIsLoading(false);
 
-    if (email === VALID_EMAIL && password === VALID_PASS) {
-      setIsLoading(false);
-      setAttempts(0);
-      onLoginSuccess();
-    } else {
-      setIsLoading(false);
+    if (error) {
+      console.error('Login Error:', error);
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
-      
+
       if (newAttempts >= 3) {
         setIsLocked(true);
         setError('Muitas tentativas falhas. Acesso bloqueado por segurança temporariamente.');
-        
+
         // Unlock after 30 seconds
         setTimeout(() => {
           setIsLocked(false);
@@ -63,15 +61,19 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
           setError('');
         }, 30000);
       } else {
-        setError('Credenciais inválidas.');
+        setError('Credenciais inválidas ou erro de login.');
       }
+    } else {
+      setAttempts(0);
+      console.log('Login Successful, User ID:', data.session?.user.id);
+      onLoginSuccess();
     }
   };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       {/* Backdrop with strong blur */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/95 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
@@ -158,9 +160,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
         </form>
 
         <div className="bg-zinc-950 p-4 text-center border-t border-zinc-800">
-           <button onClick={onClose} className="text-xs text-zinc-500 hover:text-white transition-colors">
-             Voltar para a loja
-           </button>
+          <button onClick={onClose} className="text-xs text-zinc-500 hover:text-white transition-colors">
+            Voltar para a loja
+          </button>
         </div>
       </div>
     </div>

@@ -21,12 +21,25 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  // Check session storage on mount
+  // Check session on mount
   useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('admin_auth');
-    if (sessionAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        console.log("User Logged In (Initial Session):", session.user.id);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        console.log("User Logged In (Auth Change):", session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -207,6 +220,7 @@ const App: React.FC = () => {
   };
 
   const handleToggleAvailability = async (id: string) => {
+    if (!isAuthenticated) return;
     const product = products.find(p => p.id === id);
     if (!product) return;
 
@@ -234,6 +248,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteProduct = async (id: string) => {
+    if (!isAuthenticated) return;
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
       const { error } = await supabase
         .from('products')
@@ -252,6 +267,8 @@ const App: React.FC = () => {
   };
 
   const handleAddProduct = async (newProductData: any) => {
+    if (!isAuthenticated) return;
+
     const dbProduct = {
       name: newProductData.name,
       price: newProductData.price,
@@ -282,6 +299,7 @@ const App: React.FC = () => {
   };
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
+    if (!isAuthenticated) return;
     console.log('Updating product:', updatedProduct.name); // Debug log
 
     const { data, error } = await supabase
@@ -326,6 +344,7 @@ const App: React.FC = () => {
 
   // --- Admin Logic: Categories ---
   const handleAddCategory = async (data: any) => {
+    if (!isAuthenticated) return;
     const newCategory = {
       id: data.label, // or generate a slug
       label: data.label,
@@ -351,6 +370,7 @@ const App: React.FC = () => {
   };
 
   const handleUpdateCategory = async (data: CategoryItem) => {
+    if (!isAuthenticated) return;
     const { error } = await supabase
       .from('categories')
       .update({
@@ -371,6 +391,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteCategory = async (id: string) => {
+    if (!isAuthenticated) return;
     if (window.confirm('Excluir categoria? Produtos nesta categoria ficarão órfãos ou invisíveis.')) {
       const { error } = await supabase
         .from('categories')
@@ -389,6 +410,7 @@ const App: React.FC = () => {
   };
 
   const handleToggleCategoryStatus = async (id: string) => {
+    if (!isAuthenticated) return;
     const cat = categories.find(c => c.id === id);
     if (!cat) return;
 
@@ -409,6 +431,7 @@ const App: React.FC = () => {
   };
 
   const handleReorderCategory = async (id: string, direction: 'up' | 'down') => {
+    if (!isAuthenticated) return;
     // This is more complex for real ordering, but let's do a simple swap in state and DB
     setCategories(prev => {
       const index = prev.findIndex(c => c.id === id);
@@ -454,15 +477,13 @@ const App: React.FC = () => {
   };
 
   const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-    sessionStorage.setItem('admin_auth', 'true');
+    // Session is handled by onAuthStateChange, just close modal and switch view
     setIsLoginModalOpen(false);
     setCurrentView('admin');
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('admin_auth');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentView('shop');
   };
 
