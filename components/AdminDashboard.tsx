@@ -425,6 +425,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         onClose={() => setIsProductFormOpen(false)}
         onSave={handleSaveProduct}
         productToEdit={editingProduct}
+        availableCategories={manageableCategories}
       />
 
       <CategoryFormModal
