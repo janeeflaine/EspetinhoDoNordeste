@@ -32,7 +32,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [emoji, setEmoji] = useState('');
-    const [category, setCategory] = useState<Category | ''>('');
+    const [categoryId, setCategoryId] = useState<Category | ''>('');
 
     // Image & Crop State
     const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 setName(productToEdit.name);
                 setPrice(productToEdit.price.toString());
                 setEmoji(productToEdit.icon || '');
-                setCategory(productToEdit.category);
+                setCategoryId(productToEdit.categoryId);
                 setCroppedImage(productToEdit.image || null);
                 setImageSrc(null); // Reset raw image source
                 setIsCropping(false);
@@ -63,7 +63,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 setName('');
                 setPrice('');
                 setEmoji('');
-                setCategory('');
+                setCategoryId('');
                 setImageSrc(null);
                 setCroppedImage(null);
                 setIsCropping(false);
@@ -148,7 +148,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             name,
             price: Number(price),
             emoji,
-            category,
+            categoryId,
             image: croppedImage,
         });
         onClose();
@@ -397,8 +397,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                     <select
                                         required
                                         className="flex h-11 w-full items-center justify-between whitespace-nowrap rounded-lg border px-3 py-2 text-base shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-red-600 bg-zinc-950 border-zinc-800 text-white appearance-none"
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
+                                        value={categoryId}
+                                        onChange={(e) => setCategoryId(e.target.value)}
                                     >
                                         <option value="" disabled>Selecione...</option>
                                         {availableCategories.filter(c => c.id !== 'Todos').map((cat) => (

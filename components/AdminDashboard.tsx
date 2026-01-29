@@ -363,7 +363,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="flex gap-2">
                             <span className="text-amber-400 text-sm font-bold">R$ {product.price.toFixed(2)}</span>
                             <span className="text-zinc-600 text-sm">•</span>
-                            <span className="text-zinc-500 text-xs mt-0.5">{product.category}</span>
+                            <span className="text-zinc-500 text-xs mt-0.5">
+                              {categories.find(c => c.id === product.categoryId)?.label || 'Deseconhecida'}
+                            </span>
                           </div>
                         </div>
                       </div>

@@ -94,8 +94,7 @@ const App: React.FC = () => {
       // Fetch Products (non-restricted)
       const { data: prodData, error: prodError } = await supabase
         .from('products')
-        .select('*')
-        .neq('category', 'Bebidas');
+        .select('*');
 
       if (prodError) {
         console.error('Supabase Products Error:', prodError);
@@ -103,7 +102,14 @@ const App: React.FC = () => {
         throw prodError;
       }
 
-      setProducts(prodData || []);
+      // Map DB category_id to camelCase categoryId
+      const mappedProducts = (prodData || []).map(p => ({
+        ...p,
+        categoryId: p.category_id,
+        // Filter out Drinks logic moved to memoized filter for consistency
+      }));
+
+      setProducts(mappedProducts);
 
       // Fetch Accompaniments
       const { data: accData, error: accError } = await supabase
@@ -111,9 +117,13 @@ const App: React.FC = () => {
         .select('*');
 
       if (accError) {
-        console.warn('Supabase Accompaniments Error (table might be missing):', accError);
+        console.warn('Supabase Accompaniments Error:', accError);
       } else {
-        setAccompaniments(accData || []);
+        const mappedAccs = (accData || []).map(a => ({
+          ...a,
+          categoryId: a.category_id
+        }));
+        setAccompaniments(mappedAccs);
       }
 
     } catch (error: any) {
@@ -130,22 +140,28 @@ const App: React.FC = () => {
   // Shop Logic
   const filteredProducts = useMemo(() => {
     let filtered = products;
+
+    // Filter out 'Bebidas' category from main grid if not confirmed age
+    // We need to resolve ID for 'Bebidas'
+    const bebidasCat = categories.find(c => c.label === 'Bebidas');
+
     // Only show available products in shop
     if (currentView === 'shop') {
       filtered = filtered.filter(p => p.available);
 
       // Filter out products belonging to inactive categories
       const inactiveCategoryIds = categories.filter(c => !c.active).map(c => c.id);
-      filtered = filtered.filter(p => !inactiveCategoryIds.includes(p.category));
+      filtered = filtered.filter(p => !inactiveCategoryIds.includes(p.categoryId));
+
+      // Filter 'Bebidas' if needed
+      if (bebidasCat && !isAlcoholLoaded) { // Only filter if not loaded yet
+        filtered = filtered.filter(p => p.categoryId !== bebidasCat.id);
+      }
     }
 
-    // STRICT RULE: Hide 'Bebidas' from 'Todos' view regardless of loaded state
-    if (activeCategory === 'Todos') {
-      return filtered.filter(p => p.category !== 'Bebidas');
-    }
-
-    return filtered.filter((p) => p.category === activeCategory);
-  }, [activeCategory, products, currentView, categories]);
+    if (activeCategory === 'Todos') return filtered;
+    return filtered.filter((p) => p.categoryId === activeCategory);
+  }, [activeCategory, products, currentView, categories, isAlcoholLoaded]);
 
   const addToCart = (product: Product, quantityToAdd: number = 1, selectedAccompaniments: Accompaniment[] = []) => {
     setCart((prev) => {
@@ -238,10 +254,16 @@ const App: React.FC = () => {
   const handleAgeConfirm = async () => {
     try {
       // Fetch Restricted Products from Supabase
+      // Resolve 'Bebidas' ID
+      const bebidasCat = categories.find(c => c.label === 'Bebidas');
+      if (!bebidasCat) {
+        throw new Error("Categoria 'Bebidas' não encontrada.");
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('category', 'Bebidas');
+        .eq('category_id', bebidasCat.id);
 
       if (error) throw error;
 
@@ -314,14 +336,16 @@ const App: React.FC = () => {
   const handleAddProduct = async (newProductData: any) => {
     if (!isAuthenticated) return;
 
-    // Generate ID frontend-side to satisfy non-auto-incrementing DB
+    // Let DB generate ID or generate it here if needed. 
+    // Previous code generated it here. We will stick to that but ensure types correct.
     const newId = crypto.randomUUID();
 
     const dbProduct = {
       id: newId,
       name: newProductData.name,
       price: newProductData.price,
-      category: newProductData.category,
+      // Map categoryId from form to category_id column
+      category_id: newProductData.categoryId,
       image: newProductData.image || null,
       icon: newProductData.emoji || '📦',
       description: newProductData.description || '',
@@ -356,7 +380,7 @@ const App: React.FC = () => {
       .update({
         name: updatedProduct.name,
         price: updatedProduct.price,
-        category: updatedProduct.category,
+        category_id: updatedProduct.categoryId,
         image: updatedProduct.image || null,
         icon: updatedProduct.icon || '📦',
         description: updatedProduct.description || '',
@@ -395,7 +419,7 @@ const App: React.FC = () => {
   const handleAddCategory = async (data: any) => {
     if (!isAuthenticated) return;
     const newCategory = {
-      id: data.label, // or generate a slug
+      // id: auto-generated by DB (UUID)
       label: data.label,
       icon: data.icon || '📦',
       active: true,

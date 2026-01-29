@@ -23,7 +23,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   // Filter relevant accompaniments
   const availableAccs = product
-    ? accompaniments.filter(a => a.categoryId === product.category && a.available)
+    ? accompaniments.filter(a => a.categoryId === product.categoryId && a.available)
     : [];
 
   // Price Calculation
@@ -114,8 +114,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       key={acc.id}
                       onClick={() => toggleAccompaniment(acc.id)}
                       className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${isSelected
-                          ? 'bg-red-900/20 border-red-600'
-                          : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
+                        ? 'bg-red-900/20 border-red-600'
+                        : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
                         }`}
                     >
                       <div className="flex items-center gap-3">

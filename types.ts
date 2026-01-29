@@ -1,5 +1,5 @@
 
-export type Category = string;
+export type Category = string; // This represents the UUID ID
 
 export interface CategoryItem {
   id: string;
@@ -13,7 +13,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  category: Category;
+  categoryId: string;
   description?: string;
   image?: string;
   icon?: string; // Fallback if image isn't perfect
