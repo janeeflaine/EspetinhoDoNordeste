@@ -345,7 +345,8 @@ const App: React.FC = () => {
       name: newProductData.name,
       price: newProductData.price,
       // Map categoryId from form to category_id column
-      category_id: newProductData.categoryId,
+      // Ensure empty string becomes null for UUID column
+      category_id: newProductData.categoryId || null,
       image: newProductData.image || null,
       icon: newProductData.emoji || '📦',
       description: newProductData.description || '',
@@ -380,7 +381,8 @@ const App: React.FC = () => {
       .update({
         name: updatedProduct.name,
         price: updatedProduct.price,
-        category_id: updatedProduct.categoryId,
+        // Ensure empty string becomes null for UUID column
+        category_id: updatedProduct.categoryId || null,
         image: updatedProduct.image || null,
         icon: updatedProduct.icon || '📦',
         description: updatedProduct.description || '',
