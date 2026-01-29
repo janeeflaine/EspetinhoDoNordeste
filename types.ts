@@ -20,6 +20,15 @@ export interface Product {
   available: boolean;
 }
 
+export interface Accompaniment {
+  id: string;
+  name: string;
+  price: number;
+  categoryId: string;
+  available: boolean;
+}
+
 export interface CartItem extends Product {
   quantity: number;
+  selectedAccompaniments?: Accompaniment[];
 }

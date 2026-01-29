@@ -10,7 +10,7 @@ import { ProductModal } from './components/ProductModal';
 import { AgeVerificationModal } from './components/AgeVerificationModal';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { AdminLogin } from './components/AdminLogin';
-import { Product, CartItem, Category, CategoryItem } from './types';
+import { Product, CartItem, Category, CategoryItem, Accompaniment } from './types';
 import { Plus, Phone, MapPin, Minus, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabase';
 
@@ -44,6 +44,7 @@ const App: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [accompaniments, setAccompaniments] = useState<Accompaniment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [activeCategory, setActiveCategory] = useState<Category | 'Todos'>('Todos');
@@ -102,8 +103,18 @@ const App: React.FC = () => {
         throw prodError;
       }
 
-      console.log('Fetched products:', prodData);
       setProducts(prodData || []);
+
+      // Fetch Accompaniments
+      const { data: accData, error: accError } = await supabase
+        .from('accompaniments')
+        .select('*');
+
+      if (accError) {
+        console.warn('Supabase Accompaniments Error (table might be missing):', accError);
+      } else {
+        setAccompaniments(accData || []);
+      }
 
     } catch (error: any) {
       console.error('General Fetch Error:', error);
@@ -136,18 +147,53 @@ const App: React.FC = () => {
     return filtered.filter((p) => p.category === activeCategory);
   }, [activeCategory, products, currentView, categories]);
 
-  const addToCart = (product: Product, quantityToAdd: number = 1) => {
+  const addToCart = (product: Product, quantityToAdd: number = 1, selectedAccompaniments: Accompaniment[] = []) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd } : item
-        );
-      }
-      return [...prev, { ...product, quantity: quantityToAdd }];
-    });
-  };
+      // Create a unique hash or identifier for this configuration
+      // We can't just use product.id anymore.
+      // We will look for an item with the same product.id AND same accompaniments.
+      const existingIndex = prev.findIndex((item) => {
+        if (item.id !== product.id) return false;
+        // Compare accompaniments
+        const currentAccs = item.selectedAccompaniments || [];
+        if (currentAccs.length !== selectedAccompaniments.length) return false;
+        const currentIds = currentAccs.map(a => a.id).sort().join(',');
+        const newIds = selectedAccompaniments.map(a => a.id).sort().join(',');
+        return currentIds === newIds;
+      });
 
+      if (existingIndex > -1) {
+        // Update existing item
+        const newCart = [...prev];
+        newCart[existingIndex].quantity += quantityToAdd;
+        return newCart;
+      }
+
+      // Add new item
+      // Calculate total price for this item unit (base + accompaniments)
+      // Note: We don't change product.price in the object, 
+      // but the CartItem logic in CartDrawer might rely on product.price.
+      // Wait, CartItem extends Product. 
+      // The total calculation usually uses item.price. 
+      // If we want the displayed price to reflect the sum, we should update 'price' on the cart item 
+      // OR handle it in the total calculation everywhere.
+      // Safe bet: Update the 'price' of the CartItem to be the unit price with extras.
+      const extrasTotal = selectedAccompaniments.reduce((sum, acc) => sum + acc.price, 0);
+      const finalUnitPrice = product.price + extrasTotal;
+
+      const newItem: CartItem = {
+        ...product,
+        // We override price to include extras for easier calculation downstream
+        price: finalUnitPrice,
+        // We keep original base price reference if needed? Maybe not strictly necessary for this scope.
+        quantity: quantityToAdd,
+        selectedAccompaniments: selectedAccompaniments
+      };
+
+      return [...prev, newItem];
+    });
+    setIsCartOpen(true);
+  };
   const removeFromCart = (productId: string) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === productId);
@@ -471,6 +517,57 @@ const App: React.FC = () => {
     return item ? item.quantity : 0;
   };
 
+  // --- Accompaniment Logic ---
+  const handleAddAccompaniment = async (data: any) => {
+    if (!isAuthenticated) return;
+
+    const newAcc = {
+      name: data.name,
+      price: data.price,
+      category_id: data.categoryId,
+      available: true
+    };
+
+    const { data: dbData, error } = await supabase
+      .from('accompaniments')
+      .insert([newAcc])
+      .select();
+
+    if (error) {
+      console.error('Error adding accompaniment:', error);
+      alert('Erro ao adicionar acompanhamento.');
+      return;
+    }
+
+    if (dbData && dbData[0]) {
+      // Map back to camelCase manually if needed or ensure types align
+      const created = dbData[0];
+      setAccompaniments(prev => [...prev, {
+        id: created.id,
+        name: created.name,
+        price: created.price,
+        categoryId: created.category_id,
+        available: created.available
+      }]);
+    }
+  };
+
+  const handleDeleteAccompaniment = async (id: string) => {
+    if (!isAuthenticated) return;
+    if (window.confirm('Excluir acompanhamento?')) {
+      const { error } = await supabase
+        .from('accompaniments')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting accompaniment:', error);
+        return;
+      }
+      setAccompaniments(prev => prev.filter(a => a.id !== id));
+    }
+  };
+
   // Authentication Handlers
   const handleNavigate = (view: 'shop' | 'admin') => {
     if (view === 'admin' && !isAuthenticated) {
@@ -643,6 +740,7 @@ const App: React.FC = () => {
         <AdminDashboard
           products={products}
           categories={categories}
+          accompaniments={accompaniments}
           onToggleAvailability={handleToggleAvailability}
           onDeleteProduct={handleDeleteProduct}
           onAddProduct={handleAddProduct}
@@ -653,6 +751,9 @@ const App: React.FC = () => {
           onDeleteCategory={handleDeleteCategory}
           onToggleCategoryStatus={handleToggleCategoryStatus}
           onReorderCategory={handleReorderCategory}
+          // Accompaniment props
+          onAddAccompaniment={handleAddAccompaniment}
+          onDeleteAccompaniment={handleDeleteAccompaniment}
         />
       ) : (
         <PrivacyPolicy onBack={() => setCurrentView('shop')} />
@@ -664,6 +765,7 @@ const App: React.FC = () => {
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
+        accompaniments={accompaniments}
       />
 
       {/* Cart Drawer */}

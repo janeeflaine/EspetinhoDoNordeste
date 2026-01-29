@@ -26,6 +26,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     let message = `*Olá! Gostaria de fazer um pedido:*\n\n`;
     items.forEach((item) => {
       message += `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+      if (item.selectedAccompaniments && item.selectedAccompaniments.length > 0) {
+        const accs = item.selectedAccompaniments.map(acc => {
+          const priceStr = acc.price > 0 ? `(+R$ ${acc.price.toFixed(2)})` : '(Grátis)';
+          return `${acc.name} ${priceStr}`;
+        }).join(', ');
+        message += `   Acomp: ${accs}\n`;
+      }
     });
     message += `\n*Total: R$ ${total.toFixed(2)}*`;
     message += `\n\n_Enviado via App Web_`;
@@ -39,7 +46,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
@@ -50,7 +57,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             🛒 Seu Pedido
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
           >
@@ -63,7 +70,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4">
               <span className="text-4xl">🥘</span>
               <p>Seu carrinho está vazio.</p>
-              <button 
+              <button
                 onClick={onClose}
                 className="text-amber-400 hover:underline"
               >
@@ -73,41 +80,46 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           ) : (
             items.map((item) => (
               <div key={item.id} className="bg-zinc-800/50 p-3 rounded-xl border border-zinc-700 flex gap-3">
-                 <div className="w-16 h-16 bg-zinc-700 rounded-lg flex items-center justify-center text-2xl shrink-0 overflow-hidden">
-                   {item.image ? (
-                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                   ) : (
-                     <span>{item.icon}</span>
-                   )}
-                 </div>
-                 <div className="flex-1">
-                   <h3 className="text-sm font-medium text-white line-clamp-1">{item.name}</h3>
-                   <p className="text-amber-400 font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
-                   
-                   <div className="flex items-center gap-3 mt-2">
-                     <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-700 h-8">
-                       <button 
+                <div className="w-16 h-16 bg-zinc-700 rounded-lg flex items-center justify-center text-2xl shrink-0 overflow-hidden">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{item.icon}</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-white line-clamp-1">{item.name}</h3>
+                  {item.selectedAccompaniments && item.selectedAccompaniments.length > 0 && (
+                    <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
+                      {item.selectedAccompaniments.map(a => a.name).join(', ')}
+                    </p>
+                  )}
+                  <p className="text-amber-400 font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
+
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-700 h-8">
+                      <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
                         className="px-2.5 text-zinc-400 hover:text-white h-full flex items-center"
-                       >
-                         -
-                       </button>
-                       <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                       <button 
+                      >
+                        -
+                      </button>
+                      <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                      <button
                         onClick={() => onUpdateQuantity(item.id, 1)}
                         className="px-2.5 text-zinc-400 hover:text-white h-full flex items-center"
-                       >
-                         +
-                       </button>
-                     </div>
-                     <button 
+                      >
+                        +
+                      </button>
+                    </div>
+                    <button
                       onClick={() => onRemoveItem(item.id)}
                       className="text-red-500 hover:bg-red-500/10 p-1.5 rounded-md transition-colors ml-auto"
-                     >
-                       <Trash2 className="w-4 h-4" />
-                     </button>
-                   </div>
-                 </div>
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))
           )}

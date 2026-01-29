@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { FolderOpen, Package, Users, Plus, Pencil, Trash2, MoveUp, MoveDown } from 'lucide-react';
-import { Product, CategoryItem } from '../types';
+import { Product, CategoryItem, Accompaniment } from '../types';
+import { Utensils } from 'lucide-react';
 import { ProductFormModal } from './ProductFormModal';
 import { CategoryFormModal } from './CategoryFormModal';
 
@@ -18,6 +19,10 @@ interface AdminDashboardProps {
   onDeleteCategory: (id: string) => void;
   onToggleCategoryStatus: (id: string) => void;
   onReorderCategory: (id: string, direction: 'up' | 'down') => void;
+  // Accompaniment Props
+  accompaniments: Accompaniment[];
+  onAddAccompaniment: (data: any) => void;
+  onDeleteAccompaniment: (id: string) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -31,9 +36,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateCategory,
   onDeleteCategory,
   onToggleCategoryStatus,
-  onReorderCategory
+  onToggleCategoryStatus,
+  onReorderCategory,
+  accompaniments,
+  onAddAccompaniment,
+  onDeleteAccompaniment
 }) => {
-  const [activeTab, setActiveTab] = useState<'categories' | 'products' | 'users'>('categories');
+  const [activeTab, setActiveTab] = useState<'categories' | 'products' | 'users' | 'accompaniments'>('categories');
+
+  // New Accompaniment State
+  const [newAccName, setNewAccName] = useState('');
+  const [newAccPrice, setNewAccPrice] = useState('');
+  const [newAccCategory, setNewAccCategory] = useState('');
+
+  const handleCreateAccompaniment = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAddAccompaniment({
+      name: newAccName,
+      price: Number(newAccPrice),
+      categoryId: newAccCategory
+    });
+    setNewAccName('');
+    setNewAccPrice('');
+    setNewAccCategory('');
+  };
 
   // Product Modal State
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
@@ -118,7 +144,103 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <Users className="h-4 w-4 mr-2" />
             Usuários
           </button>
+          <button
+            onClick={() => setActiveTab('accompaniments')}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 sm:flex-none ${activeTab === 'accompaniments' ? 'bg-red-600 text-white shadow' : 'hover:text-white'
+              }`}
+          >
+            <Utensils className="h-4 w-4 mr-2" />
+            Acompanhamentos
+          </button>
         </div>
+
+        {/* Tab Content: Accompaniments */}
+        {activeTab === 'accompaniments' && (
+          <div className="space-y-6 animate-fade-in">
+
+            {/* Add New Accompaniment */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow">
+              <h2 className="text-white font-bold mb-4">Adicionar Novo Acompanhamento</h2>
+              <form onSubmit={handleCreateAccompaniment} className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Nome</label>
+                  <input
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-red-600 outline-none"
+                    placeholder="Ex: Farofa, Bacon Extra"
+                    value={newAccName}
+                    onChange={e => setNewAccName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="w-full md:w-32">
+                  <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Preço (R$)</label>
+                  <input
+                    type="number" step="0.01"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-red-600 outline-none"
+                    placeholder="0.00"
+                    value={newAccPrice}
+                    onChange={e => setNewAccPrice(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="w-full md:w-48">
+                  <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Categoria</label>
+                  <select
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-red-600 outline-none"
+                    value={newAccCategory}
+                    onChange={e => setNewAccCategory(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione...</option>
+                    {manageableCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors"
+                >
+                  Adicionar
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="space-y-3">
+              <h3 className="text-zinc-400 text-sm font-bold uppercase tracking-wider">Acompanhamentos Cadastrados</h3>
+              {accompaniments.length === 0 ? (
+                <div className="text-zinc-500 italic">Nenhum acompanhamento cadastrado.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {accompaniments.map(acc => {
+                    const categoryName = categories.find(c => c.id === acc.categoryId)?.label || 'Desconhecida';
+                    return (
+                      <div key={acc.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex justify-between items-center group hover:border-zinc-700 transition-colors">
+                        <div>
+                          <h4 className="text-white font-bold">{acc.name}</h4>
+                          <div className="text-xs text-zinc-500 mt-1 flex gap-2">
+                            <span>{categoryName}</span>
+                            <span className="text-zinc-700">•</span>
+                            <span className={acc.price > 0 ? 'text-amber-500' : 'text-green-500'}>
+                              {acc.price > 0 ? `+ R$ ${acc.price.toFixed(2)}` : 'Grátis'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => onDeleteAccompaniment(acc.id)}
+                          className="text-zinc-600 hover:text-red-500 p-2 rounded-full hover:bg-zinc-800 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tab Content: Categories */}
         {activeTab === 'categories' && (
