@@ -318,7 +318,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                     </div>
                                 </div>
                             ) : (
-                                <label className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed border-zinc-800 rounded-xl cursor-pointer bg-zinc-900/50 hover:bg-zinc-800/50 hover:border-zinc-600 transition-all group">
+                                <label
+                                    onClick={handleChangeImage}
+                                    className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed border-zinc-800 rounded-xl cursor-pointer bg-zinc-900/50 hover:bg-zinc-800/50 hover:border-zinc-600 transition-all group"
+                                >
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                         <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg">
                                             <Upload className="w-6 h-6 text-zinc-400 group-hover:text-white" />
