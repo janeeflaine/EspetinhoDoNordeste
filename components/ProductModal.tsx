@@ -76,15 +76,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 text-zinc-400 hover:text-white bg-zinc-800/50 rounded-full p-2 transition-colors"
+          className="absolute top-3 right-3 z-10 text-white bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full p-2 transition-colors shadow-sm"
         >
           <X className="h-5 w-5" />
         </button>
 
-        {/* 1. Header Híbrido (Compacto) */}
-        <div className="flex gap-4 p-4 border-b border-zinc-800 shrink-0 bg-zinc-900/95 backdrop-blur-sm relative z-0">
-          {/* Imagem Quadrada Fixa */}
-          <div className="w-24 h-24 rounded-xl overflow-hidden shadow-md border border-zinc-800/50 flex-shrink-0 bg-zinc-800">
+        {/* 1. Header Vertical (Imagem Maior) */}
+        <div className="flex flex-col items-center p-4 pb-2 border-b border-zinc-800 shrink-0 bg-zinc-900 relative z-0">
+          {/* Imagem Maior com Limite de Altura (VHS) */}
+          <div className="w-full max-h-[25vh] aspect-video sm:aspect-square rounded-xl overflow-hidden shadow-lg border border-zinc-800/50 flex-shrink-0 bg-zinc-800 relative group">
             {product.image ? (
               <img
                 src={product.image}
@@ -92,18 +92,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl">
+              <div className="w-full h-full flex items-center justify-center text-4xl">
                 {product.icon}
               </div>
             )}
+            {/* Gradiente sutil para protecao de texto se precisasse, mas aqui o texto ta fora */}
           </div>
 
-          {/* Informações Principais */}
-          <div className="flex flex-col justify-center py-1 pr-6 flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white leading-tight mb-1 line-clamp-2">{product.name}</h2>
-            <p className="text-xl font-bold text-amber-500">R$ {product.price.toFixed(2)}</p>
+          {/* Informações Centralizadas */}
+          <div className="flex flex-col items-center text-center mt-4 w-full px-2">
+            <h2 className="text-xl font-bold text-white leading-tight mb-1">{product.name}</h2>
+            <p className="text-2xl font-bold text-amber-500">R$ {product.price.toFixed(2)}</p>
             {product.description && (
-              <p className="text-xs text-zinc-500 mt-1 line-clamp-2 leading-snug">{product.description}</p>
+              <p className="text-xs text-zinc-500 mt-2 line-clamp-2 max-w-[90%]">{product.description}</p>
             )}
           </div>
         </div>
@@ -112,7 +113,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           {availableAccs.length > 0 ? (
             <div className="space-y-3">
-              <label className="text-xs text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
+              <label className="text-xs text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2 justify-center sm:justify-start">
                 Adicionais
                 <span className="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.5 rounded-md border border-zinc-700">Opcional</span>
               </label>
@@ -145,7 +146,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-500 text-sm gap-2 opacity-50 min-h-[150px]">
+            <div className="h-full flex flex-col items-center justify-center text-zinc-500 text-sm gap-2 opacity-50 min-h-[100px]">
               <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
                 <Check className="w-6 h-6 text-zinc-600" />
               </div>
