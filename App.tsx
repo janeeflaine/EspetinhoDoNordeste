@@ -192,7 +192,6 @@ const App: React.FC = () => {
 
       return [...prev, newItem];
     });
-    setIsCartOpen(true);
   };
   const removeFromCart = (productId: string) => {
     setCart((prev) => {
