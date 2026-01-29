@@ -268,8 +268,8 @@ const App: React.FC = () => {
       .select();
 
     if (error) {
-      console.error('Error adding product:', error);
-      alert('Erro ao adicionar produto.');
+      console.error('Supabase Insert Error:', error);
+      alert(`Erro ao adicionar produto: ${error.message}`);
       return;
     }
 
@@ -282,7 +282,9 @@ const App: React.FC = () => {
   };
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
-    const { error } = await supabase
+    console.log('Updating product:', updatedProduct.name); // Debug log
+
+    const { data, error } = await supabase
       .from('products')
       .update({
         name: updatedProduct.name,
@@ -293,20 +295,31 @@ const App: React.FC = () => {
         description: updatedProduct.description || '',
         available: updatedProduct.available
       })
-      .eq('id', updatedProduct.id);
+      .eq('id', updatedProduct.id)
+      .select();
 
     if (error) {
-      console.error('Error updating product:', error);
-      alert('Erro ao atualizar produto.');
+      console.error('Supabase Update Error:', error);
+      alert(`Erro ao salvar alterações: ${error.message}`);
       return;
     }
 
+    if (!data || data.length === 0) {
+      console.error('No data returned from update');
+      alert('Erro desconhecido: O banco de dados não retornou confirmação.');
+      return;
+    }
+
+    const savedProduct = data[0];
+    console.log('Product updated successfully:', savedProduct);
+
     setProducts(prev => prev.map(p =>
-      p.id === updatedProduct.id ? updatedProduct : p
+      p.id === savedProduct.id ? savedProduct : p
     ));
+
     setCart(prev => prev.map(item =>
-      item.id === updatedProduct.id
-        ? { ...updatedProduct, quantity: item.quantity }
+      item.id === savedProduct.id
+        ? { ...savedProduct, quantity: item.quantity }
         : item
     ));
   };
