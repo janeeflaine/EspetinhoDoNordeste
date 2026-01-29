@@ -8,6 +8,7 @@ import { CategoryFormModal } from './CategoryFormModal';
 interface AdminDashboardProps {
   products: Product[];
   categories: CategoryItem[];
+  onToggleAvailability: (id: string) => void;
   onDeleteProduct: (id: string) => void;
   onAddProduct: (product: any) => void;
   onUpdateProduct: (product: Product) => void;
@@ -22,6 +23,7 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   products,
   categories,
+  onToggleAvailability,
   onDeleteProduct,
   onAddProduct,
   onUpdateProduct,
@@ -221,7 +223,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="p-6 pt-0">
               <div className="space-y-3">
                 {products.map((product) => (
-                  <div key={product.id} className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 transition-all hover:border-zinc-700">
+                  <div key={product.id} className={`p-4 bg-zinc-900 rounded-lg border border-zinc-800 transition-all hover:border-zinc-700 ${!product.available ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="flex items-center gap-3">
                         {product.image ? (
@@ -246,6 +248,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
 
                       <div className="flex items-center gap-3 ml-auto">
+
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm ${product.available ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                            {product.available ? 'Disponível' : 'Indisponível'}
+                          </span>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={product.available}
+                            onClick={() => onToggleAvailability(product.id)}
+                            className={`peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${product.available ? 'bg-green-600' : 'bg-zinc-700'
+                              }`}
+                          >
+                            <span
+                              className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform ${product.available ? 'translate-x-4' : 'translate-x-0'
+                                }`}
+                            ></span>
+                          </button>
+                        </div>
 
                         <button
                           onClick={() => handleEditProduct(product)}

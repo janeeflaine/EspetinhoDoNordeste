@@ -108,6 +108,8 @@ const App: React.FC = () => {
     let filtered = products;
     // Only show available products in shop
     if (currentView === 'shop') {
+      filtered = filtered.filter(p => p.available);
+
       // Filter out products belonging to inactive categories
       const inactiveCategoryIds = categories.filter(c => !c.active).map(c => c.id);
       filtered = filtered.filter(p => !inactiveCategoryIds.includes(p.category));
@@ -204,7 +206,32 @@ const App: React.FC = () => {
     setIsAgeModalOpen(false);
   };
 
-  // --- Admin Logic: Products ---
+  const handleToggleAvailability = async (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const newAvailable = !product.available;
+
+    // Update locally
+    setProducts(prev => prev.map(p =>
+      p.id === id ? { ...p, available: newAvailable } : p
+    ));
+
+    // Update DB
+    const { error } = await supabase
+      .from('products')
+      .update({ available: newAvailable })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating availability:', error);
+      // Revert local state if needed (optional for snappier UI)
+      setProducts(prev => prev.map(p =>
+        p.id === id ? { ...p, available: !newAvailable } : p
+      ));
+      alert('Erro ao atualizar disponibilidade.');
+    }
+  };
 
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
@@ -231,7 +258,8 @@ const App: React.FC = () => {
       category: newProductData.category,
       image: newProductData.image || null,
       icon: newProductData.emoji || '📦',
-      description: newProductData.description || ''
+      description: newProductData.description || '',
+      available: true
     };
 
     const { data, error } = await supabase
@@ -262,7 +290,8 @@ const App: React.FC = () => {
         category: updatedProduct.category,
         image: updatedProduct.image || null,
         icon: updatedProduct.icon || '📦',
-        description: updatedProduct.description || ''
+        description: updatedProduct.description || '',
+        available: updatedProduct.available
       })
       .eq('id', updatedProduct.id);
 
@@ -576,6 +605,7 @@ const App: React.FC = () => {
         <AdminDashboard
           products={products}
           categories={categories}
+          onToggleAvailability={handleToggleAvailability}
           onDeleteProduct={handleDeleteProduct}
           onAddProduct={handleAddProduct}
           onUpdateProduct={handleUpdateProduct}
