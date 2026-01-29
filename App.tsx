@@ -84,6 +84,10 @@ const App: React.FC = () => {
         id: c.id // Maintaining original ID but ensuring it exists
       }));
 
+      // Identify Restricted Category (Compliance)
+      const bebidasCat = dbCategories.find(c => c.label === 'Bebidas');
+      const restrictedCategoryId = bebidasCat?.id;
+
       const hasTodos = dbCategories.some(c => c.id === 'Todos');
       if (!hasTodos) {
         setCategories([{ id: 'Todos', label: 'Todos', icon: '🍽️', active: true, order: -1 }, ...dbCategories]);
@@ -91,10 +95,15 @@ const App: React.FC = () => {
         setCategories(dbCategories);
       }
 
-      // Fetch Products (non-restricted)
-      const { data: prodData, error: prodError } = await supabase
-        .from('products')
-        .select('*');
+      // Fetch Products (Zero-Exposition Rule)
+      // We explicitly exclude restricted category from initial load
+      let query = supabase.from('products').select('*');
+
+      if (restrictedCategoryId) {
+        query = query.neq('category_id', restrictedCategoryId);
+      }
+
+      const { data: prodData, error: prodError } = await query;
 
       if (prodError) {
         console.error('Supabase Products Error:', prodError);
@@ -106,7 +115,6 @@ const App: React.FC = () => {
       const mappedProducts = (prodData || []).map(p => ({
         ...p,
         categoryId: p.category_id,
-        // Filter out Drinks logic moved to memoized filter for consistency
       }));
 
       setProducts(mappedProducts);
@@ -238,16 +246,19 @@ const App: React.FC = () => {
   };
 
   // Category Selection Logic with Age Gate
-  const handleCategorySelect = (category: Category | 'Todos') => {
-    if (category === 'Bebidas') {
+  const handleCategorySelect = (categoryId: Category | 'Todos') => {
+    const bebidasCat = categories.find(c => c.label === 'Bebidas');
+    const isBebidas = bebidasCat && categoryId === bebidasCat.id;
+
+    if (isBebidas) {
       // If already loaded, just switch. If not, ask for permission.
       if (isAlcoholLoaded) {
-        setActiveCategory(category);
+        setActiveCategory(categoryId);
       } else {
         setIsAgeModalOpen(true);
       }
     } else {
-      setActiveCategory(category);
+      setActiveCategory(categoryId);
     }
   };
 
@@ -269,12 +280,20 @@ const App: React.FC = () => {
 
       setProducts(prev => {
         const existingIds = new Set(prev.map(p => p.id));
-        const newProducts = (data || []).filter(p => !existingIds.has(p.id));
+        // Ensure new products are mapped correctly if needed (e.g. category_id to categoryId)
+        // Since we select *, we rely on standardizing the shape if we were mapping in fetchData
+        // effectively we need to map them here too to match state shape
+        const mappedNew = (data || []).map(p => ({
+          ...p,
+          categoryId: p.category_id
+        }));
+
+        const newProducts = mappedNew.filter(p => !existingIds.has(p.id));
         return [...prev, ...newProducts];
       });
 
       setIsAlcoholLoaded(true);
-      setActiveCategory('Bebidas');
+      setActiveCategory(bebidasCat.id);
       setIsAgeModalOpen(false);
     } catch (error) {
       console.error("Failed to load restricted content:", error);
