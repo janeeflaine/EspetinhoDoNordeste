@@ -36,7 +36,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateCategory,
   onDeleteCategory,
   onToggleCategoryStatus,
-  onToggleCategoryStatus,
   onReorderCategory,
   accompaniments,
   onAddAccompaniment,
