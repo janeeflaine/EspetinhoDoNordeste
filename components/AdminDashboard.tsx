@@ -1,8 +1,7 @@
-
-import React, { useState } from 'react';
-import { FolderOpen, Package, Users, Plus, Pencil, Trash2, MoveUp, MoveDown } from 'lucide-react';
-import { Product, CategoryItem, Accompaniment } from '../types';
-import { Utensils } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FolderOpen, Package, Users, Plus, Pencil, Trash2, MoveUp, MoveDown, Utensils, Store as StoreIcon, MessageSquare } from 'lucide-react';
+import { Product, CategoryItem, Accompaniment, StoreMessage } from '../types';
+import { supabase } from '../supabase';
 import { ProductFormModal } from './ProductFormModal';
 import { CategoryFormModal } from './CategoryFormModal';
 
@@ -41,9 +40,76 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddAccompaniment,
   onDeleteAccompaniment
 }) => {
-  const [activeTab, setActiveTab] = useState<'categories' | 'products' | 'users' | 'accompaniments'>('categories');
+  const [activeTab, setActiveTab] = useState<'categories' | 'products' | 'users' | 'accompaniments' | 'status'>('categories');
 
-  // New Accompaniment State
+  // --- Store Status State ---
+  const [storeStatus, setStoreStatus] = useState({ is_open: true, active_message_id: '' });
+  const [storeMessages, setStoreMessages] = useState<StoreMessage[]>([]);
+  const [newMessageTitle, setNewMessageTitle] = useState('');
+  const [newMessageBody, setNewMessageBody] = useState('');
+
+  useEffect(() => {
+    if (activeTab === 'status') {
+      fetchStoreConfig();
+      fetchStoreMessages();
+    }
+  }, [activeTab]);
+
+  const fetchStoreConfig = async () => {
+    const { data } = await supabase.from('store_config').select('*').eq('id', 1).single();
+    if (data) setStoreStatus({ is_open: data.is_open, active_message_id: data.active_message_id });
+  };
+
+  const fetchStoreMessages = async () => {
+    const { data } = await supabase.from('store_messages').select('*').order('created_at', { ascending: false });
+    if (data) setStoreMessages(data);
+  };
+
+  const handleToggleStoreOpen = async (newState: boolean) => {
+    setStoreStatus(prev => ({ ...prev, is_open: newState }));
+    const { error } = await supabase.from('store_config').update({ is_open: newState }).eq('id', 1);
+    if (error) {
+      console.error("Error updating store status", error);
+      alert("Erro ao atualizar status da loja.");
+      fetchStoreConfig();
+    }
+  };
+
+  const handleSelectMessage = async (id: string) => {
+    setStoreStatus(prev => ({ ...prev, active_message_id: id }));
+    const { error } = await supabase.from('store_config').update({ active_message_id: id }).eq('id', 1);
+    if (error) alert("Erro ao selecionar mensagem.");
+  };
+
+  const handleCreateMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data, error } = await supabase.from('store_messages').insert([{
+      title: newMessageTitle,
+      message: newMessageBody
+    }]).select();
+
+    if (error) {
+      alert("Erro ao criar mensagem.");
+    } else if (data) {
+      setStoreMessages(prev => [data[0], ...prev]);
+      setNewMessageTitle('');
+      setNewMessageBody('');
+    }
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    if (!window.confirm("Excluir esta mensagem?")) return;
+
+    const { error } = await supabase.from('store_messages').delete().eq('id', id);
+    if (error) {
+      alert("Erro ao excluir mensagem.");
+    } else {
+      setStoreMessages(prev => prev.filter(m => m.id !== id));
+    }
+  };
+
+
+  // --- Accompaniment State ---
   const [newAccName, setNewAccName] = useState('');
   const [newAccPrice, setNewAccPrice] = useState('');
   const [newAccCategory, setNewAccCategory] = useState('');
@@ -121,42 +187,143 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="inline-flex h-9 items-center justify-center rounded-lg p-1 text-zinc-400 bg-zinc-900 border border-zinc-800 w-full sm:w-auto overflow-x-auto">
           <button
             onClick={() => setActiveTab('categories')}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 sm:flex-none ${activeTab === 'categories' ? 'bg-red-600 text-white shadow' : 'hover:text-white'
-              }`}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}
           >
             <FolderOpen className="h-4 w-4 mr-2" />
             Categorias
           </button>
           <button
             onClick={() => setActiveTab('products')}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 sm:flex-none ${activeTab === 'products' ? 'bg-red-600 text-white shadow' : 'hover:text-white'
-              }`}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'products' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}
           >
             <Package className="h-4 w-4 mr-2" />
             Produtos
           </button>
           <button
+            onClick={() => setActiveTab('accompaniments')}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'accompaniments' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}
+          >
+            <Utensils className="h-4 w-4 mr-2" />
+            Acompanhamentos
+          </button>
+          <button
             onClick={() => setActiveTab('users')}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 sm:flex-none ${activeTab === 'users' ? 'bg-red-600 text-white shadow' : 'hover:text-white'
-              }`}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}
           >
             <Users className="h-4 w-4 mr-2" />
             Usuários
           </button>
           <button
-            onClick={() => setActiveTab('accompaniments')}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 sm:flex-none ${activeTab === 'accompaniments' ? 'bg-red-600 text-white shadow' : 'hover:text-white'
-              }`}
+            onClick={() => setActiveTab('status')}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'status' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}
           >
-            <Utensils className="h-4 w-4 mr-2" />
-            Acompanhamentos
+            <StoreIcon className="h-4 w-4 mr-2" />
+            Status da Loja
           </button>
         </div>
+
+        {/* Tab Content: Status */}
+        {activeTab === 'status' && (
+          <div className="grid gap-6 md:grid-cols-2 animate-fade-in">
+            {/* Status Control Card */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow h-fit">
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <StoreIcon className="w-5 h-5 text-amber-500" />
+                Controle de Abertura
+              </h2>
+
+              <div className="flex flex-col items-center justify-center py-8 space-y-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
+                <div className={`text-2xl font-black uppercase tracking-widest ${storeStatus.is_open ? 'text-green-500' : 'text-red-500'}`}>
+                  {storeStatus.is_open ? 'Loja Aberta' : 'Loja Fechada'}
+                </div>
+
+                <button
+                  onClick={() => handleToggleStoreOpen(!storeStatus.is_open)}
+                  className={`relative inline-flex h-12 w-24 shrink-0 cursor-pointer items-center rounded-full border-4 border-transparent transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${storeStatus.is_open ? 'bg-green-600' : 'bg-red-600'}`}
+                >
+                  <span className={`pointer-events-none block h-10 w-10 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${storeStatus.is_open ? 'translate-x-12' : 'translate-x-0'}`} />
+                </button>
+
+                <p className="text-zinc-500 text-sm text-center px-4">
+                  {storeStatus.is_open
+                    ? 'Os clientes podem acessar o cardápio e fazer pedidos normalmente.'
+                    : 'O acesso está BLOQUEADO. Clientes verão a tela de "Loja Fechada".'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* Message Management Card */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow h-fit">
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-zinc-400" />
+                Mensagem de Bloqueio
+              </h2>
+
+              <div className="space-y-6">
+                {/* New Message Form */}
+                <form onSubmit={handleCreateMessage} className="bg-zinc-900/30 p-4 rounded-lg border border-zinc-800 space-y-3">
+                  <input
+                    placeholder="Título (ex: Voltamos às 18h)"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md p-2 text-white text-sm focus:border-amber-500 outline-none"
+                    value={newMessageTitle}
+                    onChange={e => setNewMessageTitle(e.target.value)}
+                    required
+                  />
+                  <textarea
+                    placeholder="Mensagem detalhada..."
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md p-2 text-white text-sm focus:border-amber-500 outline-none resize-none h-20"
+                    value={newMessageBody}
+                    onChange={e => setNewMessageBody(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2 rounded transition-colors">
+                    + Criar Nova Mensagem
+                  </button>
+                </form>
+
+                {/* List of Messages */}
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                  {storeMessages.map(msg => (
+                    <div
+                      key={msg.id}
+                      onClick={() => handleSelectMessage(msg.id)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${storeStatus.active_message_id === msg.id
+                          ? 'bg-amber-900/20 border-amber-500/50'
+                          : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+                        }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${storeStatus.active_message_id === msg.id ? 'border-amber-500' : 'border-zinc-600'
+                            }`}>
+                            {storeStatus.active_message_id === msg.id && <div className="w-2 h-2 rounded-full bg-amber-500" />}
+                          </div>
+                          <div>
+                            <h4 className={`text-sm font-bold ${storeStatus.active_message_id === msg.id ? 'text-amber-500' : 'text-zinc-300'}`}>{msg.title}</h4>
+                            <p className="text-xs text-zinc-500 line-clamp-1">{msg.message}</p>
+                          </div>
+                        </div>
+                        {!msg.is_default && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteMessage(msg.id); }}
+                            className="text-zinc-600 hover:text-red-500 p-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tab Content: Accompaniments */}
         {activeTab === 'accompaniments' && (
           <div className="space-y-6 animate-fade-in">
-
             {/* Add New Accompaniment */}
             <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow">
               <h2 className="text-white font-bold mb-4">Adicionar Novo Acompanhamento</h2>
