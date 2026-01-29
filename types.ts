@@ -32,3 +32,10 @@ export interface CartItem extends Product {
   quantity: number;
   selectedAccompaniments?: Accompaniment[];
 }
+
+export interface StoreMessage {
+  id: string;
+  title: string;
+  message: string;
+  is_default: boolean;
+}
