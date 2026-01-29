@@ -269,7 +269,11 @@ const App: React.FC = () => {
   const handleAddProduct = async (newProductData: any) => {
     if (!isAuthenticated) return;
 
+    // Generate ID frontend-side to satisfy non-auto-incrementing DB
+    const newId = crypto.randomUUID();
+
     const dbProduct = {
+      id: newId,
       name: newProductData.name,
       price: newProductData.price,
       category: newProductData.category,
