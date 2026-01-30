@@ -49,6 +49,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newMessageTitle, setNewMessageTitle] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'status') {
@@ -78,6 +79,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleToggleStoreOpen = async (newState: boolean) => {
     if (storeStatus.use_schedule) return; // Prevent manual change if auto is on
 
+    setIsSaving(true);
     // Optimistic Update
     setStoreStatus(prev => ({ ...prev, is_open: newState }));
 
@@ -98,9 +100,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       // Update local state to reflect auto-turnoff
       setStoreStatus(prev => ({ ...prev, use_schedule: false }));
     }
+    setIsSaving(false);
   };
 
   const handleToggleAutoSchedule = async () => {
+    setIsSaving(true);
     const newState = !storeStatus.use_schedule;
     setStoreStatus(prev => ({ ...prev, use_schedule: newState }));
 
@@ -109,6 +113,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       fetchStoreConfig();
       alert("Erro ao alterar modo: " + error.message);
     }
+    setIsSaving(false);
   };
 
   const handleSelectMessage = async (id: string) => {
@@ -271,9 +276,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <StoreIcon className="w-5 h-5 text-amber-500" />
                       Status da Loja
                     </h2>
-                    <p className={`text-sm ${storeStatus.use_schedule ? 'text-blue-400' : 'text-zinc-500'}`}>
-                      Modo: <strong>{isLoadingConfig ? 'Carregando...' : (storeStatus.use_schedule ? 'AGENDAMENTO AUTOMÁTICO' : 'MANUAL')}</strong>
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`text-sm ${storeStatus.use_schedule ? 'text-blue-400' : 'text-zinc-500'}`}>
+                        Modo: <strong>{isLoadingConfig ? 'Carregando...' : (storeStatus.use_schedule ? 'AGENDAMENTO AUTOMÁTICO' : 'MANUAL')}</strong>
+                      </p>
+                      {isSaving && <span className="text-[10px] text-zinc-500 animate-pulse">Salvando...</span>}
+                    </div>
                   </div>
 
                   {/* Manual Override Switch */}
@@ -282,7 +290,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex items-center gap-4 relative">
                       <span className={`text-sm font-bold ${!storeStatus.is_open ? 'text-red-500' : 'text-zinc-600'}`}>FECHADO</span>
                       <button
-                        disabled={storeStatus.use_schedule || isLoadingConfig}
+                        disabled={storeStatus.use_schedule || isLoadingConfig || isSaving}
                         onClick={() => handleToggleStoreOpen(!storeStatus.is_open)}
                         className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-300 focus-visible:outline-none ${storeStatus.is_open ? 'bg-green-600' : 'bg-red-600'} ${storeStatus.use_schedule ? 'cursor-not-allowed' : ''}`}
                       >
@@ -304,9 +312,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-zinc-400">OFF</span>
                       <button
-                        disabled={isLoadingConfig}
+                        disabled={isLoadingConfig || isSaving}
                         onClick={handleToggleAutoSchedule}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-300 focus-visible:outline-none ${storeStatus.use_schedule ? 'bg-blue-600' : 'bg-zinc-700'} ${isLoadingConfig ? 'opacity-50 cursor-wait' : ''}`}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-300 focus-visible:outline-none ${storeStatus.use_schedule ? 'bg-blue-600' : 'bg-zinc-700'} ${isLoadingConfig || isSaving ? 'opacity-50 cursor-wait' : ''}`}
                       >
                         <span className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${storeStatus.use_schedule ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
