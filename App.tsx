@@ -74,26 +74,26 @@ const App: React.FC = () => {
 
   // --- AUTOMATIC SCHEDULING ENGINE ---
   const [schedules, setSchedules] = useState<any[]>([]);
-  const [schedulingEnabled, setSchedulingEnabled] = useState(false);
+  const [useSchedule, setUseSchedule] = useState(false);
 
   useEffect(() => {
     // 1. Fetch Schedules when config loads (if enabled)
-    if (schedulingEnabled) {
+    if (useSchedule) {
       fetchSchedules();
     }
 
     // 2. Poll every minute
     const interval = setInterval(() => {
-      if (schedulingEnabled && schedules.length > 0) {
+      if (useSchedule && schedules.length > 0) {
         checkSchedule();
       }
     }, 60000); // 1 min
 
     // Run once immediately if enabled
-    if (schedulingEnabled && schedules.length > 0) checkSchedule();
+    if (useSchedule && schedules.length > 0) checkSchedule();
 
     return () => clearInterval(interval);
-  }, [schedulingEnabled, schedules.length]); // Re-run if enabled changes or schedules load
+  }, [useSchedule, schedules.length]); // Re-run if enabled changes or schedules load
 
   const fetchSchedules = async () => {
     const { data } = await supabase.from('store_schedules').select('*');
@@ -157,7 +157,7 @@ const App: React.FC = () => {
         .select(`
                 is_open,
                 active_message_id,
-                scheduling_enabled,
+                use_schedule,
                 store_messages (
                     id,
                     title,
@@ -171,9 +171,9 @@ const App: React.FC = () => {
         // If Manual, trust DB is_open
         // If Auto, trust DB is_open (which might be stale if no server-side, but Engine will override locally soon)
         // But for consistency:
-        setSchedulingEnabled(data.scheduling_enabled);
+        setUseSchedule(data.use_schedule);
 
-        if (!data.scheduling_enabled) {
+        if (!data.use_schedule) {
           setIsStoreOpen(data.is_open);
           // @ts-ignore
           setClosedMessage(data.store_messages);

@@ -54,6 +54,6 @@ export interface StoreConfig {
   id: number;
   is_open: boolean;
   active_message_id: string | null;
-  scheduling_enabled: boolean;
+  use_schedule: boolean;
 }
 
