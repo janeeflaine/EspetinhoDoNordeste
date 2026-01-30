@@ -67,10 +67,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleToggleStoreOpen = async (newState: boolean) => {
     // Optimistic Update
-    setStoreStatus(prev => ({ ...prev, is_open: newState }));
+    // If Manual Switch is used, we DISABLE Auto Scheduling (Override)
+    setStoreStatus(prev => ({ ...prev, is_open: newState, scheduling_enabled: false }));
 
-    // Check if config exists first (implicit via update return count check would be better, but simple update is fine for now)
-    const { error, count } = await supabase.from('store_config').update({ is_open: newState }).eq('id', 1).select('id', { count: 'exact' });
+    // Update both is_open and scheduling_enabled
+    const { error, count } = await supabase.from('store_config').update({
+      is_open: newState,
+      scheduling_enabled: false
+    }).eq('id', 1).select('id', { count: 'exact' });
 
     if (error) {
       console.error("Error updating store status", error);
@@ -79,6 +83,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     } else if (count === 0) {
       alert("Erro: Configuração da loja não encontrada (ID 1). Execute o script de correção no banco de dados.");
       fetchStoreConfig(); // Revert
+    }
+  };
+
+  const handleToggleAutoSchedule = async () => {
+    const newState = !storeStatus.scheduling_enabled;
+    setStoreStatus(prev => ({ ...prev, scheduling_enabled: newState }));
+
+    const { error } = await supabase.from('store_config').update({ scheduling_enabled: newState }).eq('id', 1);
+    if (error) {
+      fetchStoreConfig();
+      alert("Erro ao alterar modo: " + error.message);
     }
   };
 
@@ -234,30 +249,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {activeTab === 'status' && (
           <div className="grid gap-6 md:grid-cols-2 animate-fade-in">
             {/* Status Control Card */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow h-fit">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <StoreIcon className="w-5 h-5 text-amber-500" />
-                Controle de Abertura
-              </h2>
+            <div className="md:col-span-2 space-y-6">
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                      <StoreIcon className="w-5 h-5 text-amber-500" />
+                      Status da Loja
+                    </h2>
+                    <p className={`text-sm ${storeStatus.scheduling_enabled ? 'text-blue-400' : 'text-zinc-500'}`}>
+                      Modo: <strong>{storeStatus.scheduling_enabled ? 'AGENDAMENTO AUTOMÁTICO' : 'MANUAL'}</strong>
+                    </p>
+                  </div>
 
-              <div className="flex flex-col items-center justify-center py-8 space-y-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
-                <div className={`text-2xl font-black uppercase tracking-widest ${storeStatus.is_open ? 'text-green-500' : 'text-red-500'}`}>
-                  {storeStatus.is_open ? 'Loja Aberta' : 'Loja Fechada'}
+                  {/* Manual Override Switch */}
+                  <div className="flex flex-col items-center gap-2 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Controle Manual</span>
+                    <div className="flex items-center gap-4">
+                      <span className={`text-sm font-bold ${!storeStatus.is_open ? 'text-red-500' : 'text-zinc-600'}`}>FECHADO</span>
+                      <button
+                        onClick={() => handleToggleStoreOpen(!storeStatus.is_open)}
+                        className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-300 focus-visible:outline-none ${storeStatus.is_open ? 'bg-green-600' : 'bg-red-600'}`}
+                      >
+                        <span className={`pointer-events-none block h-6 w-6 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${storeStatus.is_open ? 'translate-x-6' : 'translate-x-0'}`} />
+                      </button>
+                      <span className={`text-sm font-bold ${storeStatus.is_open ? 'text-green-500' : 'text-zinc-600'}`}>ABERTO</span>
+                    </div>
+                  </div>
+
+                  {/* Auto Mode Toggle */}
+                  <div className="flex flex-col items-center gap-2 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Agendamento</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-zinc-400">Desativado</span>
+                      <button
+                        onClick={handleToggleAutoSchedule}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-300 focus-visible:outline-none ${storeStatus.scheduling_enabled ? 'bg-blue-600' : 'bg-zinc-700'}`}
+                      >
+                        <span className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${storeStatus.scheduling_enabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </button>
+                      <span className="text-xs text-zinc-400">Ativado</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <button
-                  onClick={() => handleToggleStoreOpen(!storeStatus.is_open)}
-                  className={`relative inline-flex h-12 w-24 shrink-0 cursor-pointer items-center rounded-full border-4 border-transparent transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${storeStatus.is_open ? 'bg-green-600' : 'bg-red-600'}`}
-                >
-                  <span className={`pointer-events-none block h-10 w-10 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${storeStatus.is_open ? 'translate-x-12' : 'translate-x-0'}`} />
-                </button>
-
-                <p className="text-zinc-500 text-sm text-center px-4">
-                  {storeStatus.is_open
-                    ? 'Os clientes podem acessar o cardápio e fazer pedidos normalmente.'
-                    : 'O acesso está BLOQUEADO. Clientes verão a tela de "Loja Fechada".'
-                  }
-                </p>
+              {/* Scheduler Component */}
+              <div className={`transition-opacity duration-500 ${storeStatus.scheduling_enabled ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale'}`}>
+                <StoreScheduler />
               </div>
             </div>
 

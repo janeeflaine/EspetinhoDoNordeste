@@ -72,6 +72,84 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // --- AUTOMATIC SCHEDULING ENGINE ---
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedulingEnabled, setSchedulingEnabled] = useState(false);
+
+  useEffect(() => {
+    // 1. Fetch Schedules when config loads (if enabled)
+    if (schedulingEnabled) {
+      fetchSchedules();
+    }
+
+    // 2. Poll every minute
+    const interval = setInterval(() => {
+      if (schedulingEnabled && schedules.length > 0) {
+        checkSchedule();
+      }
+    }, 60000); // 1 min
+
+    // Run once immediately if enabled
+    if (schedulingEnabled && schedules.length > 0) checkSchedule();
+
+    return () => clearInterval(interval);
+  }, [schedulingEnabled, schedules.length]); // Re-run if enabled changes or schedules load
+
+  const fetchSchedules = async () => {
+    const { data } = await supabase.from('store_schedules').select('*');
+    if (data) setSchedules(data);
+  };
+
+  const checkSchedule = () => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    let activeRule = null;
+
+    for (const slot of schedules) {
+      const [startH, startM] = slot.start_time.split(':').map(Number);
+      const [endH, endM] = slot.end_time.split(':').map(Number);
+
+      const startTotal = startH * 60 + startM;
+      const endTotal = endH * 60 + endM;
+
+      // Handle midnight crossing (Start 22:00, End 02:00)
+      let isActive = false;
+      if (endTotal < startTotal) {
+        isActive = currentMinutes >= startTotal || currentMinutes < endTotal;
+      } else {
+        isActive = currentMinutes >= startTotal && currentMinutes < endTotal;
+      }
+
+      if (isActive) {
+        activeRule = slot;
+        break; // Found priority slot (assumes non-overlapping or first win)
+      }
+    }
+
+    if (activeRule) {
+      console.log("Auto Schedule Active Rule:", activeRule);
+      setIsStoreOpen(activeRule.is_open);
+      if (activeRule.message_id && !activeRule.is_open) {
+        // We need the message body. We might need to fetch it or rely on existing loaded message.
+        // For robustness, let's fetch the message if it's different from current.
+        fetchMessageById(activeRule.message_id);
+      }
+    } else {
+      // No rule matches = Default Closed? Or Open?
+      // Prompt said: "Se não houver slot definido (limbo) -> Assume o estado padrão (Fechado)."
+      console.log("Auto Schedule: No active rule (Limbo) -> CLOSED");
+      setIsStoreOpen(false);
+      // Optional: clear message or set default "Fechado" message
+    }
+  };
+
+  const fetchMessageById = async (id: string) => {
+    const { data } = await supabase.from('store_messages').select('*').eq('id', id).single();
+    if (data) setClosedMessage(data);
+  };
+
+
   const fetchStoreStatus = async () => {
     try {
       const { data, error } = await supabase
@@ -79,6 +157,7 @@ const App: React.FC = () => {
         .select(`
                 is_open,
                 active_message_id,
+                scheduling_enabled,
                 store_messages (
                     id,
                     title,
@@ -89,9 +168,19 @@ const App: React.FC = () => {
         .single();
 
       if (data) {
-        setIsStoreOpen(data.is_open);
-        // @ts-ignore
-        setClosedMessage(data.store_messages);
+        // If Manual, trust DB is_open
+        // If Auto, trust DB is_open (which might be stale if no server-side, but Engine will override locally soon)
+        // But for consistency:
+        setSchedulingEnabled(data.scheduling_enabled);
+
+        if (!data.scheduling_enabled) {
+          setIsStoreOpen(data.is_open);
+          // @ts-ignore
+          setClosedMessage(data.store_messages);
+        } else {
+          // If Auto, wait for Engine to kick in, but initially trust keys or fetch schedules
+          fetchSchedules();
+        }
       }
     } catch (err) {
       console.error("Failed to fetch store status", err);

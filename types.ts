@@ -39,3 +39,21 @@ export interface StoreMessage {
   message: string;
   is_default: boolean;
 }
+
+export interface StoreSchedule {
+  id: string;
+  start_time: string; // HH:MM:SS
+  end_time: string;   // HH:MM:SS
+  message_id: string | null;
+  is_open: boolean;
+  day_of_week?: number | null;
+  created_at?: string;
+}
+
+export interface StoreConfig {
+  id: number;
+  is_open: boolean;
+  active_message_id: string | null;
+  scheduling_enabled: boolean;
+}
+
