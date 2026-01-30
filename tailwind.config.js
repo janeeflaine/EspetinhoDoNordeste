@@ -9,5 +9,12 @@ export default {
     theme: {
         extend: {},
     },
+    safelist: [
+        'from-red-600',
+        'to-amber-500',
+        'shadow-red-600/30',
+        'bg-gradient-to-br',
+        'scrollbar-hide'
+    ],
     plugins: [],
 }
