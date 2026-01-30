@@ -57,3 +57,11 @@ export interface StoreConfig {
   use_schedule: boolean;
 }
 
+export interface SocialLink {
+  id: string;
+  platform: string;
+  url: string;
+  is_active: boolean;
+  icon_key: string;
+}
+
