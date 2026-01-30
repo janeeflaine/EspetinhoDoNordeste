@@ -4,6 +4,7 @@ import { Product, CategoryItem, Accompaniment, StoreMessage } from '../types';
 import { supabase } from '../supabase';
 import { ProductFormModal } from './ProductFormModal';
 import { CategoryFormModal } from './CategoryFormModal';
+import { StoreScheduler } from './StoreScheduler';
 
 interface AdminDashboardProps {
   products: Product[];
