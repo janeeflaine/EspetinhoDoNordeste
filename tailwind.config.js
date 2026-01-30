@@ -11,10 +11,14 @@ export default {
     },
     safelist: [
         'from-red-600',
+        'via-orange-500',
         'to-amber-500',
         'shadow-red-600/30',
+        'shadow-[0_8px_25px_-5px_rgba(234,88,12,0.5)]',
         'bg-gradient-to-br',
-        'scrollbar-hide'
+        'bg-gradient-to-t',
+        'scrollbar-hide',
+        'backdrop-blur-md'
     ],
     plugins: [],
 }
