@@ -66,19 +66,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleToggleStoreOpen = async (newState: boolean) => {
+    // Optimistic Update
     setStoreStatus(prev => ({ ...prev, is_open: newState }));
-    const { error } = await supabase.from('store_config').update({ is_open: newState }).eq('id', 1);
+
+    // Check if config exists first (implicit via update return count check would be better, but simple update is fine for now)
+    const { error, count } = await supabase.from('store_config').update({ is_open: newState }).eq('id', 1).select('id', { count: 'exact' });
+
     if (error) {
       console.error("Error updating store status", error);
-      alert("Erro ao atualizar status da loja.");
-      fetchStoreConfig();
+      alert(`Erro ao atualizar status: ${error.message}`);
+      fetchStoreConfig(); // Revert
+    } else if (count === 0) {
+      alert("Erro: Configuração da loja não encontrada (ID 1). Execute o script de correção no banco de dados.");
+      fetchStoreConfig(); // Revert
     }
   };
 
   const handleSelectMessage = async (id: string) => {
     setStoreStatus(prev => ({ ...prev, active_message_id: id }));
     const { error } = await supabase.from('store_config').update({ active_message_id: id }).eq('id', 1);
-    if (error) alert("Erro ao selecionar mensagem.");
+    if (error) alert(`Erro ao selecionar mensagem: ${error.message}`);
   };
 
   const handleCreateMessage = async (e: React.FormEvent) => {
@@ -89,7 +96,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }]).select();
 
     if (error) {
-      alert("Erro ao criar mensagem.");
+      console.error("Error creating message", error);
+      alert(`Erro ao criar mensagem: ${error.message}`);
     } else if (data) {
       setStoreMessages(prev => [data[0], ...prev]);
       setNewMessageTitle('');
@@ -289,8 +297,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       key={msg.id}
                       onClick={() => handleSelectMessage(msg.id)}
                       className={`p-3 rounded-lg border cursor-pointer transition-all ${storeStatus.active_message_id === msg.id
-                          ? 'bg-amber-900/20 border-amber-500/50'
-                          : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+                        ? 'bg-amber-900/20 border-amber-500/50'
+                        : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
                         }`}
                     >
                       <div className="flex justify-between items-start">
