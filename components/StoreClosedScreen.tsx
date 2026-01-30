@@ -17,8 +17,8 @@ export const StoreClosedScreen: React.FC<StoreClosedScreenProps> = ({ message, o
 
             {/* Main Content */}
             <div className="max-w-md space-y-4">
-                <h1 className="text-3xl font-bold text-white tracking-tight">
-                    {message?.title || 'Loja Fechada'}
+                <h1 className="text-3xl font-black text-white tracking-tight uppercase">
+                    Loja Fechada
                 </h1>
 
                 <p className="text-zinc-400 text-lg leading-relaxed">
