@@ -4,7 +4,7 @@ import { supabase } from '../supabase';
 import { ProductFormModal } from './ProductFormModal';
 import { CategoryFormModal } from './CategoryFormModal';
 import { StoreScheduler } from './StoreScheduler';
-import { Facebook, Instagram, Youtube, Music2, Video, Globe, Link as LinkIcon, Trash2, Plus, Pencil, MoveUp, MoveDown, Utensils, Store as StoreIcon, MessageSquare } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Music2, Video, Globe, Link as LinkIcon, Trash2, Plus, Pencil, MoveUp, MoveDown, Utensils, Store as StoreIcon, MessageSquare, FolderOpen, Package, Users } from 'lucide-react';
 
 interface AdminDashboardProps {
   // ... existing props
@@ -121,14 +121,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsSaving(true);
     setStoreStatus(prev => ({ ...prev, is_open: newState }));
 
-    const { error, count } = await supabase.from('store_config').update({
+    const { data, error } = await supabase.from('store_config').update({
       is_open: newState,
       use_schedule: false
-    }).eq('id', 1).select('id', { count: 'exact' });
+    }).eq('id', 1).select('id');
 
     if (error) {
       // ... existing error
-    } else if (count === 0) {
+    } else if (!data || data.length === 0) {
       // ... existing error
     } else {
       setStoreStatus(prev => ({ ...prev, use_schedule: false }));
