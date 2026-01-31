@@ -101,8 +101,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* Informações Centralizadas */}
           <div className="flex flex-col items-center text-center mt-4 w-full px-2">
-            <h2 className="text-xl font-bold text-white leading-tight mb-1">{product.name}</h2>
-            <p className="text-2xl font-bold text-red-500">R$ {product.price.toFixed(2)}</p>
+            <h2 className="text-xl font-bold text-[#FD8E00] leading-tight mb-1">{product.name}</h2>
+            <p className="text-2xl font-bold text-[#FD8E00]">R$ {product.price.toFixed(2)}</p>
             {product.description && (
               <p className="text-xs text-zinc-500 mt-2 line-clamp-2 max-w-[90%]">{product.description}</p>
             )}
@@ -137,7 +137,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         </div>
                         <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-zinc-400'}`}>{acc.name}</span>
                       </div>
-                      <span className={`text-xs font-semibold ${acc.price > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                      <span className={`text-xs font-semibold ${acc.price > 0 ? 'text-[#FD8E00]' : 'text-emerald-500'}`}>
                         {acc.price > 0 ? `+ R$ ${acc.price.toFixed(2)}` : 'Grátis'}
                       </span>
                     </div>
@@ -160,7 +160,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Resumo de Preço (Opcional visual, já esta no header, mas bom para total final) */}
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-zinc-400 text-xs font-medium">Total do Item</span>
-            <span className="text-lg font-bold text-white">R$ {total.toFixed(2)}</span>
+            <span className="text-lg font-bold text-[#FD8E00]">R$ {total.toFixed(2)}</span>
           </div>
 
           <div className="flex gap-3 h-12">

@@ -530,7 +530,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="text-xs text-zinc-500 mt-1 flex gap-2">
                             <span>{categoryName}</span>
                             <span className="text-zinc-700">•</span>
-                            <span className={acc.price > 0 ? 'text-red-500' : 'text-green-500'}>
+                            <span className={acc.price > 0 ? 'text-[#FD8E00]' : 'text-green-500'}>
                               {acc.price > 0 ? `+ R$ ${acc.price.toFixed(2)}` : 'Grátis'}
                             </span>
                           </div>
@@ -670,9 +670,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                         )}
                         <div>
-                          <h3 className="text-white font-medium">{product.name}</h3>
+                          <h3 className="text-[#FD8E00] font-medium">{product.name}</h3>
                           <div className="flex gap-2">
-                            <span className="text-red-500 text-sm font-bold">R$ {product.price.toFixed(2)}</span>
+                            <span className="text-[#FD8E00] text-sm font-bold">R$ {product.price.toFixed(2)}</span>
                             <span className="text-zinc-600 text-sm">•</span>
                             <span className="text-zinc-500 text-xs mt-0.5">
                               {categories.find(c => c.id === product.categoryId)?.label || 'Deseconhecida'}

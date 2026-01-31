@@ -43,7 +43,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               <span
                 className={`
                   text-xs font-bold tracking-wide transition-colors duration-300 max-w-[80px] text-center
-                  ${isActive ? 'text-red-500' : 'text-zinc-500 group-hover:text-zinc-300'}
+                  ${isActive ? 'text-[#FD8E00]' : 'text-zinc-500 group-hover:text-zinc-300'}
                 `}
               >
                 {cat.label}

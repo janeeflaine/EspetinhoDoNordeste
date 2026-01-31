@@ -94,7 +94,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {item.selectedAccompaniments.map(a => a.name).join(', ')}
                     </p>
                   )}
-                  <p className="text-red-500 font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-[#FD8E00] font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
 
                   <div className="flex items-center gap-3 mt-2">
                     <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-700 h-8">
@@ -128,7 +128,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <div className="p-4 border-t border-zinc-800 bg-zinc-900">
           <div className="flex justify-between items-center mb-4 text-lg">
             <span className="text-zinc-400">Total</span>
-            <span className="font-bold text-red-500 text-xl">R$ {total.toFixed(2)}</span>
+            <span className="font-bold text-[#FD8E00] text-xl">R$ {total.toFixed(2)}</span>
           </div>
           <button
             onClick={handleCheckout}

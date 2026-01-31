@@ -889,13 +889,13 @@ const App: React.FC = () => {
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white truncate text-base">
+                        <h3 className="font-semibold text-[#FD8E00] truncate text-base">
                           {product.name}
                         </h3>
                         {product.description && (
                           <p className="text-xs text-zinc-500 truncate mb-1">{product.description}</p>
                         )}
-                        <p className="text-red-500 font-bold text-lg">
+                        <p className="text-[#FD8E00] font-bold text-lg">
                           R$ {product.price.toFixed(2)}
                         </p>
                       </div>
@@ -964,7 +964,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <span>Rua Laureano José Ferreita, 65 Distrito do Prata - Lajinha / MG</span>
                   <span className="text-xs opacity-70">Responsável: Jhonny E C Silva - CNPJ: 33.137.007/0001-09</span>
-                  <span className="text-red-500 font-medium">Entregamos em todo o Distrito.</span>
+                  <span className="text-[#FD8E00] font-medium">Entregamos em todo o Distrito.</span>
                 </div>
               </div>
               <div className="pt-3 border-t border-zinc-800/50">

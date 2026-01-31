@@ -53,7 +53,7 @@ export const CartFooter: React.FC<CartFooterProps> = ({ items, onOpenCart }) => 
             </div>
             <span>Resumo</span>
           </div>
-          <span className="text-red-500 font-bold text-xl leading-none">
+          <span className="text-[#FD8E00] font-bold text-xl leading-none">
             R$ {total.toFixed(2)}
           </span>
         </div>
