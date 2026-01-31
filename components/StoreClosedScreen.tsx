@@ -2,6 +2,8 @@ import React from 'react';
 import { Clock, Lock, ShieldCheck } from 'lucide-react';
 import { StoreMessage } from '../types';
 
+import { SocialFooter } from './SocialFooter';
+
 interface StoreClosedScreenProps {
     message: StoreMessage | null;
     onAdminLogin: () => void;
@@ -29,6 +31,11 @@ export const StoreClosedScreen: React.FC<StoreClosedScreenProps> = ({ message, o
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-950/30 border border-red-900/50 rounded-full mt-6">
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-red-400 text-sm font-medium uppercase tracking-wider">Fechado Agora</span>
+                </div>
+
+                {/* Social Media Links */}
+                <div className="mt-8 pt-8 border-t border-zinc-900/50 w-full">
+                    <SocialFooter className="scale-90" />
                 </div>
             </div>
 
