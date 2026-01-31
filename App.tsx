@@ -889,7 +889,7 @@ const App: React.FC = () => {
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-[#FD8E00] truncate text-base">
+                        <h3 className="font-semibold text-white truncate text-base">
                           {product.name}
                         </h3>
                         {product.description && (

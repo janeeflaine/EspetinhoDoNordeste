@@ -101,7 +101,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* Informações Centralizadas */}
           <div className="flex flex-col items-center text-center mt-4 w-full px-2">
-            <h2 className="text-xl font-bold text-[#FD8E00] leading-tight mb-1">{product.name}</h2>
+            <h2 className="text-xl font-bold text-white leading-tight mb-1">{product.name}</h2>
             <p className="text-2xl font-bold text-[#FD8E00]">R$ {product.price.toFixed(2)}</p>
             {product.description && (
               <p className="text-xs text-zinc-500 mt-2 line-clamp-2 max-w-[90%]">{product.description}</p>

@@ -670,7 +670,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                         )}
                         <div>
-                          <h3 className="text-[#FD8E00] font-medium">{product.name}</h3>
+                          <h3 className="text-white font-medium">{product.name}</h3>
                           <div className="flex gap-2">
                             <span className="text-[#FD8E00] text-sm font-bold">R$ {product.price.toFixed(2)}</span>
                             <span className="text-zinc-600 text-sm">•</span>
