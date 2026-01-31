@@ -53,7 +53,7 @@ export const CartFooter: React.FC<CartFooterProps> = ({ items, onOpenCart }) => 
             </div>
             <span>Resumo</span>
           </div>
-          <span className="text-amber-400 font-bold text-xl leading-none">
+          <span className="text-red-500 font-bold text-xl leading-none">
             R$ {total.toFixed(2)}
           </span>
         </div>
@@ -61,7 +61,7 @@ export const CartFooter: React.FC<CartFooterProps> = ({ items, onOpenCart }) => 
         {/* Right Side: Checkout Button */}
         <button
           onClick={handleCheckout}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-900/20"
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-all active:scale-95"
         >
           <Send className="w-4 h-4" />
           <span>Enviar Pedido</span>

@@ -233,27 +233,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="space-y-6">
         {/* Tab List */}
         <div className="inline-flex h-9 items-center justify-center rounded-lg p-1 text-zinc-400 bg-zinc-900 border border-zinc-800 w-full sm:w-auto overflow-x-auto">
-          <button onClick={() => setActiveTab('categories')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('categories')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <FolderOpen className="h-4 w-4 mr-2" />
             Categorias
           </button>
-          <button onClick={() => setActiveTab('products')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'products' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('products')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'products' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <Package className="h-4 w-4 mr-2" />
             Produtos
           </button>
-          <button onClick={() => setActiveTab('accompaniments')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'accompaniments' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('accompaniments')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'accompaniments' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <Utensils className="h-4 w-4 mr-2" />
             Acompanhamentos
           </button>
-          <button onClick={() => setActiveTab('users')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('users')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <Users className="h-4 w-4 mr-2" />
             Usuários
           </button>
-          <button onClick={() => setActiveTab('status')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'status' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('status')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'status' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <StoreIcon className="h-4 w-4 mr-2" />
             Status da Loja
           </button>
-          <button onClick={() => setActiveTab('social')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'social' ? 'bg-red-600 text-white shadow' : 'hover:text-white'}`}>
+          <button onClick={() => setActiveTab('social')} className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${activeTab === 'social' ? 'bg-red-600 text-white' : 'hover:text-white'}`}>
             <Globe className="h-4 w-4 mr-2" />
             Redes Sociais
           </button>
@@ -282,7 +282,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div key={link.id} className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 flex flex-col md:flex-row items-center gap-4">
                       {/* Icon & Label */}
                       <div className="flex items-center gap-4 min-w-[150px]">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-zinc-800 ${link.is_active ? 'text-amber-500' : 'text-zinc-600'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-zinc-800 ${link.is_active ? 'text-red-500' : 'text-zinc-600'}`}>
                           <Icon className="w-5 h-5" />
                         </div>
                         <span className="font-bold text-white">{link.platform}</span>
@@ -293,7 +293,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <input
                           type="text"
                           placeholder={`Cole o link do ${link.platform} aqui...`}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white text-sm focus:border-amber-500 outline-none transition-colors"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white text-sm focus:border-red-500 outline-none transition-colors"
                           value={link.url}
                           onChange={(e) => handleUpdateSocialLink(link.id, 'url', e.target.value)}
                         />
@@ -308,7 +308,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           role="switch"
                           aria-checked={link.is_active}
                           onClick={() => handleUpdateSocialLink(link.id, 'is_active', !link.is_active)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${link.is_active ? 'bg-amber-600' : 'bg-zinc-700'}`}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${link.is_active ? 'bg-red-600' : 'bg-zinc-700'}`}
                         >
                           <span
                             aria-hidden="true"
@@ -336,7 +336,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   <div>
                     <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                      <StoreIcon className="w-5 h-5 text-amber-500" />
+                      <StoreIcon className="w-5 h-5 text-red-500" />
                       Status da Loja
                     </h2>
                     <div className="flex items-center gap-2">
@@ -405,7 +405,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <form onSubmit={handleCreateMessage} className="bg-zinc-900/30 p-4 rounded-lg border border-zinc-800 space-y-3">
                   <input
                     placeholder="Título (ex: Voltamos às 18h)"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md p-2 text-white text-sm focus:border-amber-500 outline-none"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md p-2 text-white text-sm focus:border-red-500 outline-none"
                     value={newMessageTitle}
                     onChange={e => setNewMessageTitle(e.target.value)}
                     required
@@ -429,18 +429,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       key={msg.id}
                       onClick={() => handleSelectMessage(msg.id)}
                       className={`p-3 rounded-lg border cursor-pointer transition-all ${storeStatus.active_message_id === msg.id
-                        ? 'bg-amber-900/20 border-amber-500/50'
+                        ? 'bg-red-900/20 border-red-500/50'
                         : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
                         }`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${storeStatus.active_message_id === msg.id ? 'border-amber-500' : 'border-zinc-600'
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${storeStatus.active_message_id === msg.id ? 'border-red-500' : 'border-zinc-600'
                             }`}>
-                            {storeStatus.active_message_id === msg.id && <div className="w-2 h-2 rounded-full bg-amber-500" />}
+                            {storeStatus.active_message_id === msg.id && <div className="w-2 h-2 rounded-full bg-red-500" />}
                           </div>
                           <div>
-                            <h4 className={`text-sm font-bold ${storeStatus.active_message_id === msg.id ? 'text-amber-500' : 'text-zinc-300'}`}>{msg.title}</h4>
+                            <h4 className={`text-sm font-bold ${storeStatus.active_message_id === msg.id ? 'text-red-500' : 'text-zinc-300'}`}>{msg.title}</h4>
                             <p className="text-xs text-zinc-500 line-clamp-1">{msg.message}</p>
                           </div>
                         </div>
@@ -530,7 +530,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="text-xs text-zinc-500 mt-1 flex gap-2">
                             <span>{categoryName}</span>
                             <span className="text-zinc-700">•</span>
-                            <span className={acc.price > 0 ? 'text-amber-500' : 'text-green-500'}>
+                            <span className={acc.price > 0 ? 'text-red-500' : 'text-green-500'}>
                               {acc.price > 0 ? `+ R$ ${acc.price.toFixed(2)}` : 'Grátis'}
                             </span>
                           </div>
@@ -672,7 +672,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div>
                           <h3 className="text-white font-medium">{product.name}</h3>
                           <div className="flex gap-2">
-                            <span className="text-amber-400 text-sm font-bold">R$ {product.price.toFixed(2)}</span>
+                            <span className="text-red-500 text-sm font-bold">R$ {product.price.toFixed(2)}</span>
                             <span className="text-zinc-600 text-sm">•</span>
                             <span className="text-zinc-500 text-xs mt-0.5">
                               {categories.find(c => c.id === product.categoryId)?.label || 'Deseconhecida'}

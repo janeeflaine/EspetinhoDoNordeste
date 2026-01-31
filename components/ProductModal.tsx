@@ -102,7 +102,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Informações Centralizadas */}
           <div className="flex flex-col items-center text-center mt-4 w-full px-2">
             <h2 className="text-xl font-bold text-white leading-tight mb-1">{product.name}</h2>
-            <p className="text-2xl font-bold text-amber-500">R$ {product.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-red-500">R$ {product.price.toFixed(2)}</p>
             {product.description && (
               <p className="text-xs text-zinc-500 mt-2 line-clamp-2 max-w-[90%]">{product.description}</p>
             )}
@@ -137,7 +137,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         </div>
                         <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-zinc-400'}`}>{acc.name}</span>
                       </div>
-                      <span className={`text-xs font-semibold ${acc.price > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                      <span className={`text-xs font-semibold ${acc.price > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
                         {acc.price > 0 ? `+ R$ ${acc.price.toFixed(2)}` : 'Grátis'}
                       </span>
                     </div>
@@ -184,7 +184,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             {/* Botão Adicionar */}
             <button
               onClick={handleAdd}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-900/30 active:scale-95 transition-all text-sm"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all text-sm"
             >
               <ShoppingCart className="w-4 h-4" />
               Adicionar

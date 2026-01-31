@@ -72,7 +72,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <p>Seu carrinho está vazio.</p>
               <button
                 onClick={onClose}
-                className="text-amber-400 hover:underline"
+                className="text-red-500 hover:underline"
               >
                 Ver cardápio
               </button>
@@ -94,7 +94,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {item.selectedAccompaniments.map(a => a.name).join(', ')}
                     </p>
                   )}
-                  <p className="text-amber-400 font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-red-500 font-bold text-sm mt-1">R$ {(item.price * item.quantity).toFixed(2)}</p>
 
                   <div className="flex items-center gap-3 mt-2">
                     <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-700 h-8">
@@ -128,18 +128,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <div className="p-4 border-t border-zinc-800 bg-zinc-900">
           <div className="flex justify-between items-center mb-4 text-lg">
             <span className="text-zinc-400">Total</span>
-            <span className="font-bold text-amber-400 text-xl">R$ {total.toFixed(2)}</span>
+            <span className="font-bold text-red-500 text-xl">R$ {total.toFixed(2)}</span>
           </div>
           <button
             onClick={handleCheckout}
             disabled={items.length === 0}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-900/20"
+            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
           >
             <Send className="w-5 h-5" />
             Enviar Pedido no WhatsApp
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };

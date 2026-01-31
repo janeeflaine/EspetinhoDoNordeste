@@ -48,7 +48,7 @@ const SlotDropZone = ({ schedule, onRemoveMessage }: { schedule: StoreSchedule, 
         <div
             ref={setNodeRef}
             className={`flex-1 h-20 rounded-lg border-2 border-dashed transition-all flex items-center justify-center p-2
-                ${isOver ? 'border-amber-500 bg-amber-500/10' : 'border-zinc-800 bg-zinc-900/50'}
+                ${isOver ? 'border-red-500 bg-red-500/10' : 'border-zinc-800 bg-zinc-900/50'}
                 ${hasMessage ? 'border-none bg-zinc-800' : ''}
             `}
         >
@@ -183,7 +183,7 @@ export const StoreScheduler: React.FC = () => {
                 {/* LEFT COLUMN: Message Bank */}
                 <div className="lg:col-span-1 bg-zinc-900/50 rounded-xl border border-zinc-800 p-4 flex flex-col">
                     <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                        <Clock className="text-amber-500 w-5 h-5" />
+                        <Clock className="text-red-500 w-5 h-5" />
                         Banco de Mensagens
                     </h3>
                     <p className="text-zinc-500 text-xs mb-4">

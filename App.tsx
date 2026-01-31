@@ -873,7 +873,7 @@ const App: React.FC = () => {
                   <div
                     key={product.id}
                     onClick={() => setSelectedProduct(product)}
-                    className={`bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-2xl p-4 border transition-all duration-300 group cursor-pointer ${quantity > 0 ? 'border-red-600/30' : 'border-zinc-800 hover:border-red-600/50'}`}
+                    className={`bg-zinc-900 rounded-2xl p-4 border transition-all duration-300 group cursor-pointer ${quantity > 0 ? 'border-red-600/30' : 'border-zinc-800 hover:border-red-600/50'}`}
                   >
                     <div className="flex items-center gap-4">
                       {product.image ? (
@@ -883,7 +883,7 @@ const App: React.FC = () => {
                           className="w-16 h-16 rounded-xl object-cover shadow-lg"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-red-600/20 to-amber-500/20 flex items-center justify-center text-3xl">
+                        <div className="w-16 h-16 rounded-xl bg-red-600/10 flex items-center justify-center text-3xl">
                           {product.icon}
                         </div>
                       )}
@@ -895,14 +895,14 @@ const App: React.FC = () => {
                         {product.description && (
                           <p className="text-xs text-zinc-500 truncate mb-1">{product.description}</p>
                         )}
-                        <p className="text-amber-400 font-bold text-lg">
+                        <p className="text-red-500 font-bold text-lg">
                           R$ {product.price.toFixed(2)}
                         </p>
                       </div>
 
                       <div className="flex items-center">
                         {quantity > 0 ? (
-                          <div className="flex items-center bg-zinc-800 rounded-full border border-red-600/30 h-10 shadow-lg overflow-hidden">
+                          <div className="flex items-center bg-zinc-800 rounded-full border border-red-600/30 h-10 overflow-hidden">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -941,7 +941,7 @@ const App: React.FC = () => {
                                 addToCart(product);
                               }
                             }}
-                            className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/30 transition-transform active:scale-95"
+                            className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-red-600 hover:bg-red-700 text-white transition-transform active:scale-95"
                           >
                             <Plus className="h-5 w-5" />
                           </button>
@@ -964,7 +964,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <span>Rua Laureano José Ferreita, 65 Distrito do Prata - Lajinha / MG</span>
                   <span className="text-xs opacity-70">Responsável: Jhonny E C Silva - CNPJ: 33.137.007/0001-09</span>
-                  <span className="text-amber-500 font-medium">Entregamos em todo o Distrito.</span>
+                  <span className="text-red-500 font-medium">Entregamos em todo o Distrito.</span>
                 </div>
               </div>
               <div className="pt-3 border-t border-zinc-800/50">

@@ -60,7 +60,7 @@ export const SocialFooter: React.FC<SocialFooterProps> = ({
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`text-zinc-400 hover:text-amber-500 transition-all hover:scale-110 duration-200 ${iconClassName}`}
+                            className={`text-zinc-400 hover:text-red-500 transition-all hover:scale-110 duration-200 ${iconClassName}`}
                             title={link.platform}
                         >
                             <Icon className="w-full h-full" />

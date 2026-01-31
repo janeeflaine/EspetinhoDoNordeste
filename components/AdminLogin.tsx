@@ -97,7 +97,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className={`p-3 rounded-lg flex items-start gap-2 text-sm ${isLocked ? 'bg-red-950/50 text-red-400 border border-red-900/50' : 'bg-amber-950/30 text-amber-500 border border-amber-900/30'}`}>
+            <div className={`p-3 rounded-lg flex items-start gap-2 text-sm ${isLocked ? 'bg-red-950/50 text-red-400 border border-red-900/50' : 'bg-red-950/30 text-red-500 border border-red-900/30'}`}>
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -148,7 +148,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ isOpen, onClose, onLogin
             <button
               type="submit"
               disabled={isLoading || isLocked || !email || !password}
-              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-red-900/20 active:scale-95 flex items-center justify-center gap-2"
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
