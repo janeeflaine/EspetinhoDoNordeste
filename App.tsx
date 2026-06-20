@@ -10,6 +10,7 @@ import { ProductModal } from './components/ProductModal';
 import { AgeVerificationModal } from './components/AgeVerificationModal';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { AdminLogin } from './components/AdminLogin';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { Product, CartItem, Category, CategoryItem, Accompaniment } from './types';
 import { Plus, Phone, MapPin, Minus, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabase';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
 
   // Store Status State
   const [isStoreOpen, setIsStoreOpen] = useState(true);
@@ -40,10 +42,13 @@ const App: React.FC = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
       if (session) {
         console.log("User Logged In (Auth Change):", session.user.id);
+      }
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResetPasswordModalOpen(true);
       }
     });
 
@@ -1038,6 +1043,15 @@ const App: React.FC = () => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={isResetPasswordModalOpen}
+        onClose={() => {
+          setIsResetPasswordModalOpen(false);
+          setCurrentView('admin');
+        }}
       />
     </div>
   );
